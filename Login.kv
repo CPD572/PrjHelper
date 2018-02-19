@@ -1,9 +1,13 @@
+
+
 <CustomButton@Button>:
 	font_size: 16
 
 <LoginScreen>:
 	username: user_name
 	password: password
+	saveUserData: isSaved
+	
 	BoxLayout:
 		id: login
 		orientation: "vertical"
@@ -39,7 +43,8 @@
 				text: 'Save login'
 				font_size: 14
 			CheckBox:
-				on_active: root.on_save_data_checkbox(self, self.active)
+				id: isSaved
+				#on_active: root.on_save_data_checkbox(self, self.active)
 				size_hint: [.1, 1]
 	
 		BoxLayout:

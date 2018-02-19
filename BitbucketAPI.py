@@ -5,13 +5,16 @@ import requests
 import json
 import os
 import math
+from builtins import staticmethod
 
-projects_uri = 'http://repo.microlab.club/rest/api/1.0/'
-users = 'users/'
-projects_repo = 'projects/'
-userdatafolder = 'usr/'
+bitbucket_api_link = 'http://repo.microlab.club/rest/api/1.0/'
+users = 'users'
+projects_repo = 'projects'
+module_repos = 'repos'
+userdatafolder = 'usr\\'
 userfile = userdatafolder+'user.mlbu'
 password_separator = 'FF04'
+page_start = '?start='
 
 def prettify(elem):
     """Return a pretty-printed XML string for the Element.
@@ -53,8 +56,15 @@ class BitbucketUser:
             date_tag.text = str(created.date())
             time_tag = ElementTree.SubElement(created_tag, 'time')
             time_tag.text = str(created.time())[:8]
-            with open('usr/user.mlbu','w+') as f:
+            with open(userfile,'w+') as f:
                 print(prettify(user_data_tag), file=f)
+                
+    def delete_saved_user(self):
+        if self.is_user_data_saved():
+            os.remove(userfile)
+            os.rmdir(userdatafolder)
+        else:
+            return
                 
     def is_user_data_saved(self):
         return os.path.exists(userfile)
@@ -87,7 +97,34 @@ class BitbucketUser:
 class BitbucketProject:
     
     def __init__(self):
-        pass
+        self.key = u''
+        self.id = 0
+        self.name = u''
+        self.type = u''
+        self.link = u''
+        
+    def __call__(self, key = u'', id = 0, name = u'', type = u'', link = u''):
+        self.key = key 
+        self.id = id    
+        self.name = name
+        self.type = type
+        self.link = link
+        
+
+
+class BitbucketRepo:
+    
+    def __init__(self):
+        self.id = 0
+        self.slug = u''
+        self.name = u''
+        self.scmId = u''
+        self.forkable = False
+        self.project = BitbucketProject()
+        self.public = False
+        self.http_link = u''
+        self.ssh_link = u''
+
 
 class Bitbucket:
     
@@ -95,24 +132,93 @@ class Bitbucket:
         self.user = BitbucketUser()
         self.has_access = False
         self.session = requests.Session()
+        self.projects = []
         
     def Login(self, user_name, password):
         self.user(user_name, password)
         self.session.auth = requests.auth.HTTPBasicAuth(self.user.username, self.user.password)
-        url = projects_uri + users + str(self.user.username)
-        #try:
-        httpGetResponse = self.session.get(url, timeout = 5.0)
-        self.jsonResponse = json.loads(httpGetResponse.text)
-        if httpGetResponse.status_code == 200:
-            self.has_access = True
-            return 1
-        else:
-            return 0
-        #except:
-        #    return -1
+        url = bitbucket_api_link + users + '/'+ str(self.user.username)
+        try:
+            httpGetResponse = self.session.get(url, timeout = 5.0)
+            self.jsonResponse = json.loads(httpGetResponse.text)
+            if httpGetResponse.status_code == 200:
+                self.has_access = True
+                return 1
+            else:
+                return 0
+        except:
+            return -1
         
     def Change_user(self, name, password):
         self.has_access = False
         self.user.delete_user()
         self.user(name, password)
         
+    def Paged_response_parse(self, url):
+        pages = []
+        isLastPage = False
+        try:
+            while isLastPage == False:
+                http_response = self.session.get(url, timeout = 5.0)
+                if http_response.status_code == 200:
+                    self.jsonResponse = json.loads(http_response_text)
+                    isLastPage = self.jsonResponse['isLastPage']
+                    pages.append(self.jsonResponse['values'])
+                    if isLastPage == False:
+                        url = url + page_start + str(self.jsonResponse['nextPageStart'])
+                else:
+                    return {'errors': [{'message': http_response.status_text}]}
+                
+            return {'values': pages}
+        
+        except KeyError:
+            return {'errors': [{'message': 'Something goes wrong. Incorrect JSON format received.'}]}
+        
+        except ConnectTimeout:
+            return {'errors': [{'message': 'There is no server connection. Timeout was reached.'}]}
+        
+        except ConnectionError:
+            return {'errors': [{'message': 'There is no server connection.'}]}
+        
+    def Get_projects(self):
+        if self.has_access == True:
+            url = bitbucket_api_link + projects_repo
+            rsp = self.Paged_response_parse(url)
+            if 'values' in rsp:
+                for value in rsp['values']:
+                    prj = BitbucketProject()
+                    prj.key = value['key']
+                    prj.id = value['id']
+                    prj.name = value['name']
+                    prj.type = value['type']
+                    prj.link = value['links']['self'][0]['href']
+                    self.projects.append(prj)
+            else:
+                return
+        else:
+            return
+
+
+    def Get_modules_repo(self, project=u''):
+        if self.has_access == True:
+            if project == u'':
+                url = bitbucket_api_link + module_repos
+            else:
+                url = bitbucket_api_link + projects_repo + u'/' + project + u'/' + module_repos
+            
+            rsp = self.Paged_response_parse(url)
+            if 'values' in rsp:
+                for value in rsp['values']:
+                    repo = BitbucketRepo()
+                    repo.id = value['id']
+                    repo.name = value['name']
+                    repo.project(key=value['key'], id=values['id'],name = values['name'], type = values['type'], link = values['links']['self'][0]['href'])
+                    repo.forkable = value['forkable']
+                    repo.scmId = value['scmId']
+                    repo.slug = value['slug']
+                    repo.public = value['public']
+                    repo.http_link = value['links']['clone'][0]['href']
+                    repo.ssh_link = value['links']['clone'][1]['href']
+        
+            
+                
