@@ -30,7 +30,7 @@ class LoginScreen(Screen):
     def Submit(self):
         
         tmp = self.bitbucketSession.Login(self.username.text, self.password.text)
-        Window.hide()
+        #Window.hide()
         #if username and password are correct
         if tmp == 1:
             #the_popup = Popups.WarningPopup(self.bitbucketSession.jsonResponse['displayName'])
@@ -77,4 +77,5 @@ class LoginScreen(Screen):
     def on_enter(self, *args):
         Screen.on_enter(self, *args)
         Window.size = (400, 160)
+        Window.show()
         

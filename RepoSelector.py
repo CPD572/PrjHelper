@@ -33,23 +33,41 @@ Builder.load_string("""
                             TabbedPanelItem:
                                 text: "HMI"
                                 Label:
-                                    text: "ASW panel content"
+                                    text: "HMI panel content"
                                     
                             TabbedPanelItem:
                                 text: "COM"
                                 Label:
-                                    text: "ASW panel content"
+                                    text: "COM panel content"
                                     
                             TabbedPanelItem:
                                 text: "IO"
                                 Label:
-                                    text: "ASW panel content"
+                                    text: "IO panel content"
                         
                 TabbedPanelItem:
                     text: "ESW"
-                    Label:
-                        text: "CDD panel content"
-                        
+                    BoxLayout:
+                        orientation: 'horizontal'
+                        TabbedPanel:
+                            do_default_tab: False
+                            tab_height: 30
+                            
+                            TabbedPanelItem:
+                                text: "SENS"
+                                Label:
+                                    text: "Sensors panel content"
+                                    
+                            TabbedPanelItem:
+                                text: "ACT"
+                                Label:
+                                    text: "Actuators panel content"
+                                    
+                            TabbedPanelItem:
+                                text: "PWRMNG"
+                                Label:
+                                    text: "Power Management panel content"
+     
         BoxLayout:
             size_hint_y: None
             orientation: 'vertical'
@@ -68,10 +86,17 @@ class RepoSelectorScreen(Screen):
     
     def __init__(self, **kwargs):
         super(RepoSelectorScreen, self).__init__(**kwargs)
+        
+    def on_pre_leave(self, *args):
+        Screen.on_pre_leave(self, *args)
+        Window.hide()
+        time.sleep(.5)
     
     def on_enter(self, *args):
         Screen.on_enter(self, *args)
         Window.size = (600,200)
-        time.sleep(1)
+        time.sleep(.5)
         Window.show()
+        
+    
         
