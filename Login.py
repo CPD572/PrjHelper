@@ -79,7 +79,4 @@ class LoginScreen(Screen):
     def on_pre_enter(self, *args):
         Screen.on_pre_enter(self, *args)
         Window.size = (400, 160)    
-    
-    #def on_enter(self, *args):
-    #    Screen.on_enter(self, *args)
-    #    Window.size = (400, 160)
+
