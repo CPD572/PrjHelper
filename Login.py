@@ -1,9 +1,18 @@
-from kivy.properties import ObjectProperty
-from kivy.uix.screenmanager import Screen
-from kivy.core.window import Window
+#!/usr/bin/kivy
+# -*- coding: utf-8 -*-
+
 from BitbucketAPI import Bitbucket
 import Popups
+from kivy.core.window import Window
+from kivy.lang import Builder
+from kivy.properties import ObjectProperty
+from kivy.uix.screenmanager import Screen
+from sys import platform
 import time
+
+
+if 'linux' in platform:
+    Builder.load_file('Login.kv')
 
 class LoginScreen(Screen):
 
@@ -11,8 +20,13 @@ class LoginScreen(Screen):
     password = ObjectProperty()
     saveUserData = ObjectProperty()
     
-    def __init__(self,session=None, **kwargs):
+    def __init__(self,session=None, window = None, **kwargs):
         super(LoginScreen, self).__init__(**kwargs)
+        if window == None:
+            print('WTF')
+            self.window = Window
+        else:
+            self.window = window
         if session != None:
             self.bitbucketSession = session
             if self.bitbucketSession.user.username != u'':
@@ -28,9 +42,9 @@ class LoginScreen(Screen):
         return self.bitbucketSession.user.is_user_data_saved()
             
     def Submit(self):
-        
+
         tmp = self.bitbucketSession.Login(self.username.text, self.password.text)
-        Window.hide()
+        
         #if username and password are correct
         if tmp == 1:
             #the_popup = Popups.WarningPopup(self.bitbucketSession.jsonResponse['displayName'])
@@ -52,14 +66,14 @@ class LoginScreen(Screen):
         
         #if username or password are incorrect
         elif tmp == 0:
-            Window.show()
+            self.window.show()
             the_popup = Popups.ErrorPopup(self.bitbucketSession.jsonResponse['errors'][0]['message'])
             the_popup.open()
             self.reset_form()
             
         #No internet connection or server is not responding
         elif  tmp == -1:
-            Window.show()
+            self.window.show()
             the_popup = Popups.ErrorPopup('There is no server connection. Timeout was reached.')
             the_popup.open()
 
@@ -72,9 +86,10 @@ class LoginScreen(Screen):
         
     def on_pre_leave(self, *args):
         Screen.on_pre_leave(self, *args)
-        Window.hide()
+        self.window.hide()
+        print('exited Login page')
         
     def on_enter(self, *args):
         Screen.on_enter(self, *args)
-        Window.size = (400, 160)
-        
+        self.window.size = (400, 160)
+        self.window.show()

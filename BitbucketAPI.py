@@ -1,20 +1,32 @@
-import xml.etree.ElementTree as ElementTree
-from xml.dom import minidom
-from datetime import datetime
-import requests
-import json
-import os
-import math
+#!/usr/bin/kivy
+# -*- coding: utf-8 -*-
+
 from builtins import staticmethod
+from datetime import datetime
+import json
+import math
+import os
+import requests
+from xml.dom import minidom
+import xml.etree.ElementTree as ElementTree
+from sys import platform
+
+if 'win' in platform:
+    file_route_spliter = '\\'
+else:
+    file_route_spliter = '/'
 
 bitbucket_api_link = 'http://repo.microlab.club/rest/api/1.0/'
 users = 'users'
 projects_repo = 'projects'
-module_repos = 'repos'
-userdatafolder = 'usr\\'
-userfile = userdatafolder+'user.mlbu'
-password_separator = 'FF04'
 page_start = '?start='
+
+module_repos = 'repos'
+userdatafolder = 'usr'
+userfile = userdatafolder + file_route_spliter + 'user.mlbu'
+password_separator = 'FF04'
+
+
 
 def prettify(elem):
     """Return a pretty-printed XML string for the Element.
@@ -25,12 +37,12 @@ def prettify(elem):
 
 class BitbucketUser:
     def __init__(self):
+        self.username = u''
+        self.password = u''
+        self.encoded_password = u''
+        
         if self.is_user_data_saved():
             self.load_userdata_from_file()
-        else:
-            self.username = u''
-            self.password = u''
-            self.encoded_password = u''
         
     def delete_user(self):
         self.username = u''
@@ -70,8 +82,8 @@ class BitbucketUser:
         return os.path.exists(userfile)
     
     def load_userdata_from_file(self):
-        if os.path.exists('usr/user.mlbu'):
-            user_data = ElementTree.parse('usr/user.mlbu').getroot()
+        if os.path.exists(userfile):
+            user_data = ElementTree.parse(userfile).getroot()
             self.encoded_password = user_data[0][0].text
             self.decode_password()
             self.username = user_data[0].attrib['name']

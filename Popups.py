@@ -1,9 +1,12 @@
-from kivy.uix.label import Label
-from kivy.uix.button import Button
-from kivy.uix.popup import Popup
-from kivy.uix.boxlayout import BoxLayout
-from kivy.properties import StringProperty
+#!/usr/bin/kivy
+# -*- coding: utf-8 -*-
+
 from kivy.core.window import Window
+from kivy.properties import StringProperty
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.button import Button
+from kivy.uix.label import Label
+from kivy.uix.popup import Popup
 
 
 class PopupMessage(Popup):
