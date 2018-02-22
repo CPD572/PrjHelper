@@ -21,8 +21,8 @@ class ProjectConstructorApp(App):
         appWindow = Window
         self.session = Bitbucket()
         manager = ScreenManager()
-        manager.add_widget(Login.LoginScreen(name = 'Login', session = self.session, window = appWindow))
-        manager.add_widget(RepoSelectorScreen(name = 'RepoSelector', session = self.session, window = appWindow))
+        manager.add_widget(Login.LoginScreen(name = 'Login', session = self.session))
+        manager.add_widget(RepoSelectorScreen(name = 'RepoSelector', session = self.session))
         return manager
 
 

@@ -12,24 +12,13 @@ if 'linux' in platform:
 
 class RepoSelectorScreen(Screen):
     
-    def __init__(self, session=None, window = Window, **kwargs):
+    def __init__(self, session=None, **kwargs):
         super(RepoSelectorScreen, self).__init__(**kwargs)
-        self.window = window
         
-        
-    def on_pre_leave(self, *args):
-        Screen.on_pre_leave(self, *args)
-        #self.window.hide()
-        time.sleep(.5)
     
     def on_enter(self, *args):
         Screen.on_enter(self, *args)
-        self.window.size = (600,200)
+        Window.size = (600,200)
         time.sleep(.5)
-        print('entered the RepoSelector page')
-        self.window.show()
-        #Window.show()
-        #Window.show()
-        #Window.show()
-        #Window.show()
+
         
