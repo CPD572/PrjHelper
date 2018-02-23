@@ -10,6 +10,7 @@ import requests
 from xml.dom import minidom
 import xml.etree.ElementTree as ElementTree
 from sys import platform
+from requests.exceptions import ConnectTimeout, ConnectionError
 
 if 'win' in platform:
     file_route_spliter = '\\'
@@ -115,13 +116,17 @@ class BitbucketProject:
         self.type = u''
         self.link = u''
         
-    def __call__(self, key = u'', id = 0, name = u'', type = u'', link = u''):
-        self.key = key 
-        self.id = id    
-        self.name = name
-        self.type = type
-        self.link = link
-        
+    def __call__(self, **kwargs):
+        if 'key' in kwargs:
+            self.key = kwargs['key']
+        if 'id' in kwargs:
+            self.id = kwargs['id']
+        if 'name' in kwargs:
+            self.name = kwargs['name']
+        if 'type' in kwargs:
+            self.type = kwargs['type']
+        if 'links' in kwargs:
+            self.link = kwargs['links']['self'][0]['href']
 
 
 class BitbucketRepo:
@@ -145,6 +150,7 @@ class Bitbucket:
         self.has_access = False
         self.session = requests.Session()
         self.projects = []
+        self.repositories = []
         
     def Login(self, user_name, password):
         self.user(user_name, password)
@@ -169,17 +175,18 @@ class Bitbucket:
     def Paged_response_parse(self, url):
         pages = []
         isLastPage = False
+        initial_url = url
         try:
             while isLastPage == False:
                 http_response = self.session.get(url, timeout = 5.0)
                 if http_response.status_code == 200:
-                    self.jsonResponse = json.loads(http_response_text)
+                    self.jsonResponse = json.loads(str(http_response.text))
                     isLastPage = self.jsonResponse['isLastPage']
-                    pages.append(self.jsonResponse['values'])
+                    pages+=self.jsonResponse['values']
                     if isLastPage == False:
-                        url = url + page_start + str(self.jsonResponse['nextPageStart'])
+                        url = initial_url + page_start + str(len(pages))
                 else:
-                    return {'errors': [{'message': http_response.status_text}]}
+                    return {'errors': [{'message': http_response.reason}]}
                 
             return {'values': pages}
         
@@ -224,13 +231,13 @@ class Bitbucket:
                     repo = BitbucketRepo()
                     repo.id = value['id']
                     repo.name = value['name']
-                    repo.project(key=value['key'], id=values['id'],name = values['name'], type = values['type'], link = values['links']['self'][0]['href'])
+                    repo.project(**value['project'])
                     repo.forkable = value['forkable']
                     repo.scmId = value['scmId']
                     repo.slug = value['slug']
                     repo.public = value['public']
                     repo.http_link = value['links']['clone'][0]['href']
                     repo.ssh_link = value['links']['clone'][1]['href']
-        
+                    self.repositories.append(repo)
             
                 

@@ -14,11 +14,22 @@ class RepoSelectorScreen(Screen):
     
     def __init__(self, session=None, **kwargs):
         super(RepoSelectorScreen, self).__init__(**kwargs)
+        self.repos = None
+        self.bitbucketSession = None
+        if session != None:
+            self.bitbucketSession = session
         
+    def on_pre_enter(self, *args):
+        Screen.on_pre_enter(self, *args)
+        if self.bitbucketSession != None:
+            if self.bitbucketSession.projects == []:
+                self.bitbucketSession.Get_projects()
+                self.bitbucketSession.Get_modules_repo()
+    
     
     def on_enter(self, *args):
         Screen.on_enter(self, *args)
-        Window.size = (600,200)
+        Window.size = (600,600)
         time.sleep(.5)
 
         
