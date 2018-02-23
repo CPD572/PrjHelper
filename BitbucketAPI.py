@@ -236,8 +236,15 @@ class Bitbucket:
                     repo.scmId = value['scmId']
                     repo.slug = value['slug']
                     repo.public = value['public']
-                    repo.http_link = value['links']['clone'][0]['href']
-                    repo.ssh_link = value['links']['clone'][1]['href']
+                    clone = value['links']['clone']
+                    if clone[0]['name'] == 'http':
+                        http_value = 0
+                        ssh_value = 1
+                    elif clone[1]['name'] == 'http':
+                        http_value = 1
+                        ssh_value = 0
+                    repo.http_link = value['links']['clone'][http_value]['href']
+                    repo.ssh_link = value['links']['clone'][ssh_value]['href']
                     self.repositories.append(repo)
             
                 
