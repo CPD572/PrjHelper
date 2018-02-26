@@ -141,6 +141,9 @@ class BitbucketRepo:
         self.public = False
         self.http_link = u''
         self.ssh_link = u''
+        
+    def __str__(self):
+        return '%s' % self.name
 
 
 class Bitbucket:
@@ -184,7 +187,7 @@ class Bitbucket:
                     isLastPage = self.jsonResponse['isLastPage']
                     pages+=self.jsonResponse['values']
                     if isLastPage == False:
-                        url = initial_url + page_start + str(len(pages))
+                        url = initial_url + page_start + str(self.jsonResponse['nextPageStart'])
                 else:
                     return {'errors': [{'message': http_response.reason}]}
                 

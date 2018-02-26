@@ -1,10 +1,10 @@
+
 <RepoSelectorScreen>:
     BoxLayout:
         orientation: 'vertical'
         
         BoxLayout:
             orientation: 'horizontal'
-            #size_hint_x: .25
             height: 30
             
             TabbedPanel:
@@ -12,11 +12,18 @@
                 tab_height: 30
                 
                 TabbedPanelItem:
+                    id: asw
                     text: "ASW"
-                    Label:
-                        text: "ASW panel content"
-                        
+                    BoxLayout:
+	                    ScrollView:
+	                    	bar_width: '9dp'
+		                    TreeView:
+		                    	id: asw_tree_view
+		                    	size_hint_y: None
+                    	
+                    
                 TabbedPanelItem:
+                    id: bsw
                     text: "BSW"
                     BoxLayout:
                         orientation: 'vertical'
@@ -25,21 +32,37 @@
                             tab_height: 30
                             
                             TabbedPanelItem:
+                            	id: bsw_hmi
                                 text: "HMI"
-                                Label:
-                                    text: "HMI panel content"
+                                BoxLayout:
+			                    	ScrollView:
+				                    	bar_width: '9dp'
+					                    TreeView:
+					                    	id: bsw_hmi_tree_view
+					                    	size_hint_y: None
                                     
                             TabbedPanelItem:
+                            	id: bsw_com
                                 text: "COM"
-                                Label:
-                                    text: "COM panel content"
+                                BoxLayout:
+			                    	ScrollView:
+				                    	bar_width: '9dp'
+					                    TreeView:
+					                    	id: bsw_com_tree_view
+					                    	size_hint_y: None
                                     
                             TabbedPanelItem:
+                            	id: bsw_io
                                 text: "IO"
-                                Label:
-                                    text: "IO panel content"
+                                BoxLayout:
+			                    	ScrollView:
+				                    	bar_width: '9dp'
+					                    TreeView:
+					                    	id: bsw_io_tree_view
+					                    	size_hint_y: None
                         
                 TabbedPanelItem:
+                    id: esw
                     text: "ESW"
                     BoxLayout:
                         orientation: 'horizontal'
@@ -48,23 +71,47 @@
                             tab_height: 30
                             
                             TabbedPanelItem:
+                            	id: esw_sens
                                 text: "SENS"
-                                Label:
-                                    text: "Sensors panel content"
+                                BoxLayout:
+			                    	ScrollView:
+				                    	bar_width: '9dp'
+					                    TreeView:
+					                    	id: esw_sens_tree_view
+					                    	size_hint_y: None
                                     
                             TabbedPanelItem:
+                            	id: esw_act
                                 text: "ACT"
-                                Label:
-                                    text: "Actuators panel content"
+                                BoxLayout:
+			                    	ScrollView:
+				                    	bar_width: '9dp'
+					                    TreeView:
+					                    	id: esw_act_tree_view
+					                    	size_hint_y: None
                                     
                             TabbedPanelItem:
+                            	id: esw_pwrmng
                                 text: "PWRMNG"
-                                Label:
-                                    text: "Power Management panel content"
+			                    BoxLayout:
+			                    	ScrollView:
+				                    	bar_width: '9dp'
+					                    TreeView:
+					                    	id: esw_pwrmng_tree_view
+					                    	size_hint_y: None
+                                    
+                TabbedPanelItem:
+                    id: lib
+                    text: "LIB"
+                    BoxLayout:
+                    	ScrollView:
+	                    	bar_width: '9dp'
+		                    TreeView:
+		                    	id: lib_tree_view
+		                    	size_hint_y: None
      
         BoxLayout:
             size_hint_y: None
-            orientation: 'vertical'
             height: "30dp"
             Button:
                 pos_hint:{'center': .5, "bottom":1}
@@ -72,3 +119,5 @@
                 on_release: 
                     root.manager.transition.duration = 0
                     root.manager.current = 'Login'
+                    
+                    
