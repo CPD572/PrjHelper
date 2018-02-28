@@ -1,4 +1,13 @@
 
+#<SelectedItemsView>:
+#	BoxLayout:
+#		orientation: 'horizontal'
+#		height: '20dp'
+#		Label:
+#			text: root.name
+		
+
+
 <RepoSelectorScreen>:
     BoxLayout:
         orientation: 'vertical'
@@ -10,105 +19,98 @@
             TabbedPanel:
                 do_default_tab: False
                 tab_height: 30
+                id: root_tabb
                 
                 TabbedPanelItem:
                     id: asw
                     text: "ASW"
-                    BoxLayout:
-	                    ScrollView:
-	                    	bar_width: '9dp'
-		                    TreeView:
-		                    	id: asw_tree_view
-		                    	size_hint_y: None
+	                ScrollView:
+	                	bar_width: '9dp'
+		                TreeView:
+		                	id: asw_tree_view
+		                	size_hint_y: None
                     	
                     
                 TabbedPanelItem:
                     id: bsw
                     text: "BSW"
-                    BoxLayout:
-                        orientation: 'vertical'
-                        TabbedPanel:
-                            do_default_tab: False
-                            tab_height: 30
-                            
-                            TabbedPanelItem:
-                            	id: bsw_hmi
-                                text: "HMI"
-                                BoxLayout:
-			                    	ScrollView:
-				                    	bar_width: '9dp'
-					                    TreeView:
-					                    	id: bsw_hmi_tree_view
-					                    	size_hint_y: None
-                                    
-                            TabbedPanelItem:
-                            	id: bsw_com
-                                text: "COM"
-                                BoxLayout:
-			                    	ScrollView:
-				                    	bar_width: '9dp'
-					                    TreeView:
-					                    	id: bsw_com_tree_view
-					                    	size_hint_y: None
-                                    
-                            TabbedPanelItem:
-                            	id: bsw_io
-                                text: "IO"
-                                BoxLayout:
-			                    	ScrollView:
-				                    	bar_width: '9dp'
-					                    TreeView:
-					                    	id: bsw_io_tree_view
-					                    	size_hint_y: None
+                    TabbedPanel:
+                        do_default_tab: False
+                        tab_height: 30
+                        
+                        TabbedPanelItem:
+                        	id: bsw_hmi
+                            text: "HMI"
+			                ScrollView:
+				            	bar_width: '9dp'
+					            TreeView:
+					            	id: bsw_hmi_tree_view
+					            	size_hint_y: None
+                                
+                        TabbedPanelItem:
+                        	id: bsw_com
+                            text: "COM"
+			                ScrollView:
+				            	bar_width: '9dp'
+					            TreeView:
+					            	id: bsw_com_tree_view
+					            	size_hint_y: None
+                                
+                        TabbedPanelItem:
+                        	id: bsw_io
+                            text: "IO"
+			                ScrollView:
+				                bar_width: '9dp'
+					            TreeView:
+					            	id: bsw_io_tree_view
+					            	size_hint_y: None
                         
                 TabbedPanelItem:
                     id: esw
                     text: "ESW"
-                    BoxLayout:
-                        orientation: 'horizontal'
-                        TabbedPanel:
-                            do_default_tab: False
-                            tab_height: 30
-                            
-                            TabbedPanelItem:
-                            	id: esw_sens
-                                text: "SENS"
-                                BoxLayout:
-			                    	ScrollView:
-				                    	bar_width: '9dp'
-					                    TreeView:
-					                    	id: esw_sens_tree_view
-					                    	size_hint_y: None
-                                    
-                            TabbedPanelItem:
-                            	id: esw_act
-                                text: "ACT"
-                                BoxLayout:
-			                    	ScrollView:
-				                    	bar_width: '9dp'
-					                    TreeView:
-					                    	id: esw_act_tree_view
-					                    	size_hint_y: None
-                                    
-                            TabbedPanelItem:
-                            	id: esw_pwrmng
-                                text: "PWRMNG"
-			                    BoxLayout:
-			                    	ScrollView:
-				                    	bar_width: '9dp'
-					                    TreeView:
-					                    	id: esw_pwrmng_tree_view
-					                    	size_hint_y: None
+                    TabbedPanel:
+                        do_default_tab: False
+                        tab_height: 30
+                        
+                        TabbedPanelItem:
+                        	id: esw_sens
+                            text: "SENS"
+			                ScrollView:
+				            	bar_width: '9dp'
+					            TreeView:
+					            	id: esw_sens_tree_view
+					            	size_hint_y: None
+                                
+                        TabbedPanelItem:
+                        	id: esw_act
+                            text: "ACT"
+			                ScrollView:
+				            	bar_width: '9dp'
+					            TreeView:
+					            	id: esw_act_tree_view
+					            	size_hint_y: None
+                                
+                        TabbedPanelItem:
+                        	id: esw_pwrmng
+                            text: "PWRMNG"
+			                ScrollView:
+				            	bar_width: '9dp'
+					            TreeView:
+					            	id: esw_pwrmng_tree_view
+					            	size_hint_y: None
                                     
                 TabbedPanelItem:
                     id: lib
                     text: "LIB"
                     BoxLayout:
-                    	ScrollView:
-	                    	bar_width: '9dp'
-		                    TreeView:
-		                    	id: lib_tree_view
-		                    	size_hint_y: None
+                    ScrollView:
+	                	bar_width: '9dp'
+		                TreeView:
+		                	id: lib_tree_view
+		                	size_hint_y: None
+		                	
+#       BoxLayout:
+#       	id: 
      
         BoxLayout:
             size_hint_y: None
