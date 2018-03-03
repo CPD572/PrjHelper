@@ -22,14 +22,18 @@ class LoginScreen(Screen):
     
     def __init__(self,session=None, **kwargs):
         super(LoginScreen, self).__init__(**kwargs)
+        self.loged_in = False
+        self.left_top_cord = ()
         if session != None:
             self.bitbucketSession = session
             if self.bitbucketSession.user.username != u'':
                 self.username.text = self.bitbucketSession.user.username
                 self.password.text = self.bitbucketSession.user.password
                 self.saveUserData.active = True
+                self.autologin = True
             else:
                 self.saveUserData.active = False
+                self.autologin = False
         else:       
             self.bitbucketSession = Bitbucket()
             
@@ -57,10 +61,13 @@ class LoginScreen(Screen):
             #change screen to RepoSelector
             self.manager.transition.duration = 0
             self.manager.current = 'RepoSelector'
+            
+            self.loged_in = True
         
         #if username or password are incorrect
         elif tmp == 0:
             the_popup = Popups.ErrorPopup(self.bitbucketSession.jsonResponse['errors'][0]['message'])
+            self.loged_in = False
             the_popup.open()
             self.reset_form()
             
@@ -68,6 +75,7 @@ class LoginScreen(Screen):
         elif  tmp == -1:
             the_popup = Popups.ErrorPopup('There is no server connection. Timeout was reached.')
             the_popup.open()
+            self.loged_in = False
 
             
     def reset_form(self):
@@ -78,5 +86,12 @@ class LoginScreen(Screen):
         
     def on_pre_enter(self, *args):
         Screen.on_pre_enter(self, *args)
-        Window.size = (400, 160)    
-
+        if self.loged_in == True:
+            Window.left, Window.top = self.left_top_cord
+        Window.size = (400, 160)
+        self.left_top_cord = (Window.left, Window.top)
+        
+    def on_enter(self, *args):
+        Screen.on_enter(self, *args)
+        #self.Submit()
+        

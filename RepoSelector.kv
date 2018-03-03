@@ -1,20 +1,74 @@
+#:import hex kivy.utils.get_color_from_hex
 
-#<SelectedItemsView>:
-#	BoxLayout:
-#		orientation: 'horizontal'
-#		height: '20dp'
-#		Label:
-#			text: root.name
+<HoverButton>:
+	size_hint: [None, None]
+	background_normal: 'close_inactive.png' if not self.hovered else 'close_active.png'
+	background_down: 'close_active.png'
+	size: 15, 14
+	pos_hint: {'center_x': .5, "center_y":.5}
+
+
+<SelectedItem>:
+	orientation: 'horizontal'
+	size_hint: [None, None]
+	size: self.item_name_len + 20, 15
+    canvas:
+		Color:
+			rgba: hex('#b8b4b4')
+		RoundedRectangle:
+			size: self.size
+			pos: self.pos
+			radius: [1,]
+	Label:
+		text: root.item_name
+		font_size: 15
+	HoverButton:
+		on_release: root.on_delete()
 		
+		
+<LogOutButton>:
+    size_hint: [None, None]
+    height: "30dp"
+    width: "60dp"
+    pos_hint:{'center': .5, "bottom":1}
+    text: "Log out"
+    on_release: 
+        root.parent.parent.manager.transition.duration = 0
+        root.parent.parent.manager.current = 'Login'
+	
+	
+<SelectedItemsView>:
+	spacing: 1
+	orientation: 'vertical'
+	size_hint: [1, 1]
+	Label:
+		size_hint: [None, None]
+		height: '30dp'
+		text: root.label_text
+	StackLayout:
+		size_hint: [1, 1]
+		orientation: 'lr-tb'
+		spacing: 5
+		padding: 5
+		canvas:
+			Color:
+				rgba: 1, 1, 1, 1
+			RoundedRectangle:
+				size: self.size
+				pos: self.pos
+				radius: [5,]
 
 
 <RepoSelectorScreen>:
     BoxLayout:
-        orientation: 'vertical'
+        orientation: 'horizontal'
+        id: main_box
+        spacing: 5
         
         BoxLayout:
-            orientation: 'horizontal'
-            height: 30
+            orientation: 'vertical'
+            size_hint_x: None
+            width: 585
             
             TabbedPanel:
                 do_default_tab: False
@@ -109,17 +163,19 @@
 		                	id: lib_tree_view
 		                	size_hint_y: None
 		                	
-#       BoxLayout:
-#       	id: 
-     
-        BoxLayout:
-            size_hint_y: None
-            height: "30dp"
-            Button:
-                pos_hint:{'center': .5, "bottom":1}
-                text: "Logout"
-                on_release: 
-                    root.manager.transition.duration = 0
-                    root.manager.current = 'Login'
+		                	
+		BoxLayout:
+			orientation: 'horizontal'
+			id: selected_items_lists
+			spacing: 5
+#			canvas:
+#				Color:
+#					rgba: 1, 0, 0, 1
+#				Rectangle:
+#					size: self.size
+#					pos: self.pos
+		                	
+		                	
+
                     
                     
