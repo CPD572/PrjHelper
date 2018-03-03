@@ -2,11 +2,10 @@
 # -*- coding: utf-8 -*-
 
 from BitbucketAPI import Bitbucket
-import Login
+from Login import LoginScreen
 from RepoSelector import RepoSelectorScreen
 from kivy.app import App
 from kivy.config import Config
-from kivy.core.window import Window
 from kivy.uix.screenmanager import ScreenManager
 
 
@@ -18,11 +17,18 @@ class ProjectConstructorApp(App):
         Config.set('graphics', 'resizable', 'False')
         Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
         Config.write()
-        appWindow = Window
         self.session = Bitbucket()
         manager = ScreenManager()
-        manager.add_widget(Login.LoginScreen(name = 'Login', session = self.session))
+        
+        #adding screens to application
+        login_screen = LoginScreen(name = 'Login', session = self.session)
+        manager.add_widget(login_screen)
         manager.add_widget(RepoSelectorScreen(name = 'RepoSelector', session = self.session))
+        
+        #auto log in if user data saved
+        if self.session.user.username != u'':
+            login_screen.Submit()
+            
         return manager
 
 
