@@ -25,24 +25,24 @@ class LoginScreen(Screen):
         self.loged_in = False
         self.left_top_cord = ()
         if session != None:
-            self.bitbucketSession = session
-            if self.bitbucketSession.user.username != u'':
-                self.username.text = self.bitbucketSession.user.username
-                self.password.text = self.bitbucketSession.user.password
+            self.connection_session = session
+            if self.connection_session.user.username != u'':
+                self.username.text = self.connection_session.user.username
+                self.password.text = self.connection_session.user.password
                 self.saveUserData.active = True
                 self.autologin = True
             else:
                 self.saveUserData.active = False
                 self.autologin = False
         else:       
-            self.bitbucketSession = Bitbucket()
+            self.connection_session = Bitbucket()
             
     def is_user_data_saved(self):
-        return self.bitbucketSession.user.is_user_data_saved()
+        return self.connection_session.user.is_user_data_saved()
             
     def Submit(self):
 
-        tmp = self.bitbucketSession.Login(self.username.text, self.password.text)
+        tmp = self.connection_session.Login(self.username.text, self.password.text)
         
         #if username and password are correct
         if tmp == 1:
@@ -52,11 +52,15 @@ class LoginScreen(Screen):
             if self.saveUserData.active == True:
                 
             #   create XML with user data 'file.mlbu' 
-                self.bitbucketSession.user.save_user()
+                self.connection_session.user.save_user()
             
             #the user data have to be deleted if "Save login" is unchecked
             else:
-                self.bitbucketSession.user.delete_saved_user()
+                self.connection_session.user.delete_saved_user()
+            
+            if self.connection_session.projects == [] and self.connection_session.repositories == []:
+                self.connection_session.Get_projects()    
+                self.connection_session.Get_modules_repo()
                 
             #change screen to RepoSelector
             self.manager.transition.duration = 0
@@ -66,7 +70,7 @@ class LoginScreen(Screen):
         
         #if username or password are incorrect
         elif tmp == 0:
-            the_popup = Popups.ErrorPopup(self.bitbucketSession.jsonResponse['errors'][0]['message'])
+            the_popup = Popups.ErrorPopup(self.connection_session.jsonResponse['errors'][0]['message'])
             self.loged_in = False
             the_popup.open()
             self.reset_form()
@@ -82,7 +86,7 @@ class LoginScreen(Screen):
         self.username.text = ''
         self.password.text = ''
         self.saveUserData.active = False
-        self.bitbucketSession.user.delete_user()
+        self.connection_session.user.delete_user()
         
     def on_pre_enter(self, *args):
         Screen.on_pre_enter(self, *args)
@@ -94,4 +98,5 @@ class LoginScreen(Screen):
     def on_enter(self, *args):
         Screen.on_enter(self, *args)
         #self.Submit()
+
         

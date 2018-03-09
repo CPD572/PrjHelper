@@ -1,0 +1,53 @@
+#:import hex kivy.utils.get_color_from_hex
+
+<HoverButton>:
+	size_hint: [None, None]
+	background_normal: 'close_inactive.png' if not self.hovered else 'close_active.png'
+	background_down: 'close_active.png'
+	size: 15, 14
+	pos_hint: {'center_x': .5, "center_y":.5}
+
+
+<SelectedItem>:
+	orientation: 'horizontal'
+	size_hint: [None, None]
+	size: self.item_name_len + 20, 15
+    canvas:
+		Color:
+			rgba: hex('#b8b4b4')
+		RoundedRectangle:
+			size: self.size
+			pos: self.pos
+			radius: [1,]
+	Label:
+		text: root.item_name
+		font_size: 15
+	HoverButton:
+		on_release: root.on_delete()
+		
+		
+<SelectedItemsView>:
+	spacing: 6
+	orientation: 'vertical'
+	size_hint: [1,1]
+	Label:
+		size_hint: [1, None]
+		height: root.label_height
+		text: root.label_text
+	ScrollView:
+        bar_width: '9dp'
+        #size_hint: [1,None]
+		StackLayout:
+			size_hint: [1,None]
+			id: stack
+			height: root.height - root.label_height - root.spacing
+			orientation: 'lr-tb'
+			spacing: 5
+			padding: 5
+			canvas:
+				Color:
+					rgba: 1, 1, 1, 1
+				RoundedRectangle:
+					size: self.size
+					pos: self.pos
+					radius: [5,]

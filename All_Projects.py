@@ -1,0 +1,60 @@
+#!/usr/bin/kivy
+# -*- coding: utf-8 -*-
+
+from kivy.uix.screenmanager import Screen
+from behaviors.selectablebehavior import SelectedItemsView, SelectedItem, TreeViewSelectableItem
+from behaviors.menubehavior import MenuBox
+from kivy.uix.treeview import TreeViewLabel, TreeView
+from kivy.core.window import Window
+from kivy.lang import Builder
+from sys import platform
+
+Builder.load_file('projects_view.kv')
+    
+
+class ProjectsScreen(Screen):
+    
+    def __init__(self, session=None, **kwargs):
+        super(ProjectsScreen, self).__init__(**kwargs)
+        self.connection_session = session
+        
+        self.ids.scrolled_tree.bind(minimum_size=lambda w, size: w.setter('height')(w, size[1]))
+            
+        self.treeview = self.ids.scrolled_tree
+        self.treeview.root_options=dict(text='MicroLab Projects')
+               
+        self.selected_items_view = None              
+        
+        self.entered = False
+        
+    def on_pre_enter(self, *args):
+        Screen.on_pre_enter(self, *args)
+        if self.connection_session != None and self.entered == False:
+            self.selected_items_view = SelectedItemsView(label_text = 'Selected projects and repositories')
+            self.ids.main_box.add_widget(self.selected_items_view)
+            self.ids.main_box.add_widget(MenuBox(change_view_button_text = 'Go to\nMLP', on_menu_button_release = self.on_change_view))
+            for project in self.connection_session.projects:
+                node = TreeViewLabel(text = project.name)
+                self.treeview.add_node(node)
+                for repo in self.connection_session.repositories:
+                    if repo.project.name == project.name:
+                        selectableItem = TreeViewSelectableItem(item = repo)
+                        selectableItem.bind(on_double_tap = self.on_selectable_item_double_tap)
+                        self.treeview.add_node(selectableItem, node)
+                        
+            self.entered = True
+            
+    def on_enter(self, *args):
+        Screen.on_enter(self, *args)
+        new_width, new_height = ((len(self.connection_session.projects)+4)*100,400)
+        old_width, old_height = Window.size
+        Window.left, Window.top = (Window.left-(new_width-old_width)/2,Window.top-(new_height-old_height)/2)
+        Window.size = (new_width, new_height)
+        
+    def on_change_view(self):
+        self.manager.transition.duration = 0                                                                                     
+        self.manager.current = 'RepoSelector'
+        
+    def on_selectable_item_double_tap(self,object,item):
+        self.selected_items_view.dispatch('on_add_item', item)
+        

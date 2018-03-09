@@ -1,4 +1,4 @@
-#!/usr/bin/kivy
+# !/usr/bin/kivy
 # -*- coding: utf-8 -*-
 
 from kivy.properties import BooleanProperty, ObjectProperty
@@ -14,7 +14,7 @@ class HoverBehavior(object):
     """
 
     hovered = BooleanProperty(False)
-    border_point= ObjectProperty(None)
+    border_point = ObjectProperty(None)
     '''Contains the last relevant point received by the Hoverable. This can
     be used in `on_enter` or `on_leave` in order to know where was dispatched the event.
     '''
@@ -27,12 +27,12 @@ class HoverBehavior(object):
 
     def on_mouse_pos(self, *args):
         if not self.get_root_window():
-            return # do proceed if I'm not displayed <=> If have no parent
+            return  # do proceed if I'm not displayed <=> If have no parent
         pos = args[1]
-        #Next line to_widget allow to compensate for relative layout
+        # Next line to_widget allow to compensate for relative layout
         inside = self.collide_point(*self.to_widget(*pos))
         if self.hovered == inside:
-            #We have already done what was needed
+            # We have already done what was needed
             return
         self.border_point = pos
         self.hovered = inside
