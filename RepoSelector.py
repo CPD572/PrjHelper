@@ -81,9 +81,17 @@ class RepoSelectorScreen(Screen):
                 tree_view = self.ids[id+'_tree_view']
                 tree_view.root_options = {'text': 'MLP'}
                 for repo in self.repositories[self.ids[id].text]:
-                    selectableItem = TreeViewSelectableItem(item = repo)
-                    selectableItem.bind(on_double_tap = self.on_selectable_item_double_tap)
-                    tree_view.add_node(selectableItem)
+                    selectableRepo = TreeViewSelectableItem(item = repo, text = repo.name)
+                    selectableRepo.bind(on_double_tap = self.on_selectable_item_double_tap)
+                    tree_view.add_node(selectableRepo)
+                    for branch in repo.branches:
+                        selectableBranch = TreeViewSelectableItem(item = branch, text = branch.displayId)
+                        selectableBranch.bind(on_double_tap = self.on_selectable_item_double_tap)
+                        tree_view.add_node(selectableBranch, selectableRepo)
+                        for commit in branch.commits:
+                            selectableCommit = TreeViewSelectableItem(item = commit, text = commit.message)
+                            selectableCommit.bind(on_double_tap = self.on_selectable_item_double_tap)
+                            tree_view.add_node(selectableCommit, selectableBranch)
                     
             for tabb in self.tabbs:
                 selected = SelectedItemsView(label_text = tabb.text)

@@ -38,9 +38,17 @@ class ProjectsScreen(Screen):
                 self.treeview.add_node(node)
                 for repo in self.connection_session.repositories:
                     if repo.project.name == project.name:
-                        selectableItem = TreeViewSelectableItem(item = repo)
-                        selectableItem.bind(on_double_tap = self.on_selectable_item_double_tap)
-                        self.treeview.add_node(selectableItem, node)
+                        selectableRepo = TreeViewSelectableItem(item = repo, text = repo.name)
+                        selectableRepo.bind(on_double_tap = self.on_selectable_item_double_tap)
+                        self.treeview.add_node(selectableRepo, node)
+                        for branch in repo.branches:
+                            selectableBranch = TreeViewSelectableItem(item = branch, text = branch.displayId)
+                            selectableBranch.bind(on_double_tap = self.on_selectable_item_double_tap)
+                            self.treeview.add_node(selectableBranch, selectableRepo)
+                            for commit in branch.commits:
+                                selectableCommit = TreeViewSelectableItem(item = commit, text = commit.message)
+                                selectableCommit.bind(on_double_tap = self.on_selectable_item_double_tap)
+                                self.treeview.add_node(selectableCommit, selectableBranch)
                         
             self.entered = True
             

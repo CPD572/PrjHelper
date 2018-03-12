@@ -68,13 +68,13 @@ class SelectedItemsView(BoxLayout):
     
 class TreeViewSelectableItem(TreeViewLabel):
     
-    def __init__(self, item = None, **kwargs):
+    def __init__(self, item = None, text = None, **kwargs):
         self.item = None
         self.register_event_type('on_double_tap')
         super().__init__(**kwargs)
-        if item is not None:
+        if item is not None and text is not None:
             self.item = item
-            self.text = self.item.name
+            self.text = text
 
     def on_touch_up(self, touch):
         if self.is_selected and touch.is_double_tap:
