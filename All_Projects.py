@@ -36,7 +36,7 @@ class ProjectsScreen(Screen):
             for project in self.connection_session.projects:
                 node = TreeViewLabel(text = project.name)
                 self.treeview.add_node(node)
-                for repo in self.connection_session.repositories:
+                for repo in project.repositories:
                     if repo.project.name == project.name:
                         selectableRepo = TreeViewSelectableItem(item = repo, text = repo.name)
                         selectableRepo.bind(on_double_tap = self.on_selectable_item_double_tap)

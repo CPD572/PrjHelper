@@ -77,8 +77,11 @@ class TreeViewSelectableItem(TreeViewLabel):
             self.text = text
 
     def on_touch_up(self, touch):
-        if self.is_selected and touch.is_double_tap:
-            self.dispatch('on_double_tap', self.item)
+        if self.is_selected:
+            if touch.is_double_tap:
+                self.dispatch('on_double_tap', self.item)
+            
+            print(self.item)    
             
     def on_double_tap(self,item):
         pass

@@ -28,7 +28,7 @@ class ProjectConstructorApp(App):
         manager.add_widget(ProjectsScreen(name = 'ProjectSelector', session = self.session))
         
         #auto log in if user data saved
-        if self.session.user.username != u'':
+        if self.session.user.slug != u'':
             login_screen.Submit()
             
         return manager

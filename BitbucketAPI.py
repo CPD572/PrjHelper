@@ -10,7 +10,7 @@ import requests
 from xml.dom import minidom
 import xml.etree.ElementTree as ElementTree
 from sys import platform
-from requests.exceptions import ConnectTimeout, ConnectionError
+from requests.exceptions import ConnectTimeout, ConnectionError, ReadTimeout
 
 if 'win' in platform:
     file_route_spliter = '\\'
@@ -40,66 +40,54 @@ def prettify(elem):
     reparsed = minidom.parseString(rough_string)
     return reparsed.toprettyxml(indent="  ")
 
-class BitbucketUser:
+class BitbucketRegularUser:
     def __init__(self, kwargs= None):
-        self.password = u''
         if kwargs is None:
-            self.username = u''
-            self.encoded_password = u''
+            self.slug = u''
+            self.id = u''
             self.emailAddress = u''
             self.displayName = u''
             self.type = u''
             self.link = u''
-            
-            if self.is_user_data_saved():
-                self.load_userdata_from_file()
         else:
             self(**kwargs)
-        
-    def delete_user(self):
-        self.username = u''
-        self.password = u''
-        self.encoded_password = u''
-        
+            
+    def __str__(self):
+        return '%s' % self.displayName
+     
     def __call__(self, **kwargs):
-        if 'username' in kwargs:
-            self.username = kwargs['username']
-        if 'password' in kwargs:
-            self.password = kwargs['password']
+        if 'slug' in kwargs:
+            self.slug = kwargs['slug']
         if 'emailAddress' in kwargs:
             self.emailAddress = kwargs['emailAddress']
+        if 'id' in kwargs:
+            self.id = kwargs['id']
         if 'displayName' in kwargs:
             self.displayName = kwargs['displayName']
         if 'type' in kwargs:
             self.type = kwargs['type']
-        if 'link' in kwargs:
-            self.link = kwargs['link']
+        if 'links' in kwargs:
+            self.link = kwargs['links']['self'][0]['href']
         
-        self.encode_password()
+
+
+ 
+class BitbucketLogedUser(BitbucketRegularUser):                
+    def __init__(self, **kwargs):
+        super(BitbucketLogedUser, self).__init__(kwargs)
+        self.password = u''
+        self.encoded_password = u''
         
-    def save_user(self):
-        if not os.path.exists(userdatafolder):
-            os.mkdir(userdatafolder)
-        if not os.path.exists(userfile):
-            created = datetime.now()
-            user_data_tag = ElementTree.Element('user_data')
-            user_tag = ElementTree.SubElement(user_data_tag, 'user', {'name': self.username})
-            user_password_tag = ElementTree.SubElement(user_tag,'password')
-            user_password_tag.text = self.encoded_password
-            created_tag = ElementTree.SubElement(user_tag, 'created')
-            date_tag = ElementTree.SubElement(created_tag, 'date')
-            date_tag.text = str(created.date())
-            time_tag = ElementTree.SubElement(created_tag, 'time')
-            time_tag.text = str(created.time())[:8]
-            with open(userfile,'w+') as f:
-                print(prettify(user_data_tag), file=f)
-                
-    def delete_saved_user(self):
         if self.is_user_data_saved():
-            os.remove(userfile)
-            os.rmdir(userdatafolder)
-        else:
-            return
+            self.load_userdata_from_file()
+        
+        
+    def __call__(self, **kwargs):
+        BitbucketRegularUser.__call__(self, **kwargs)
+        if 'password' in kwargs:
+            self.password = kwargs['password']
+            self.encode_password()
+                
                 
     def is_user_data_saved(self):
         return os.path.exists(userfile)
@@ -109,7 +97,7 @@ class BitbucketUser:
             user_data = ElementTree.parse(userfile).getroot()
             self.encoded_password = user_data[0][0].text
             self.decode_password()
-            self.username = user_data[0].attrib['name']
+            self.slug = user_data[0].attrib['name']
                         
     def encode_password(self):
         if self.password == u'':
@@ -126,12 +114,44 @@ class BitbucketUser:
         result_word = []
         for i in self.encoded_password.split(password_separator):
             result_word.append(int(math.sqrt(int(i,16))-1))
-        self.password = ''.join(map(chr,result_word))                    
-    
-    
+        self.password = ''.join(map(chr,result_word))
+                
+    def delete_user(self):
+        self.slug = u''
+        self.password = u''
+        self.encoded_password = u''
+        
+    def save_user(self):
+        if not os.path.exists(userdatafolder):
+            os.mkdir(userdatafolder)
+        if not os.path.exists(userfile):
+            created = datetime.now()
+            user_data_tag = ElementTree.Element('user_data')
+            user_tag = ElementTree.SubElement(user_data_tag, 'user', {'name': self.slug})
+            user_password_tag = ElementTree.SubElement(user_tag,'password')
+            user_password_tag.text = self.encoded_password
+            created_tag = ElementTree.SubElement(user_tag, 'created')
+            date_tag = ElementTree.SubElement(created_tag, 'date')
+            date_tag.text = str(created.date())
+            time_tag = ElementTree.SubElement(created_tag, 'time')
+            time_tag.text = str(created.time())[:8]
+            with open(userfile,'w+') as f:
+                print(prettify(user_data_tag), file=f)
+                
+    def delete_saved_user(self):
+        if self.is_user_data_saved():
+            os.remove(userfile)
+            os.rmdir(userdatafolder)
+        else:
+            return 
+
+
+
+   
 class BitbucketProject:
     
     def __init__(self, kwargs = None):
+        self.repositories = []
         if kwargs is None:
             self.key = u''
             self.id = 0
@@ -153,7 +173,11 @@ class BitbucketProject:
         if 'links' in kwargs:
             self.link = kwargs['links']['self'][0]['href']
 
-class BitbucketBranches(object):
+
+
+
+
+class BitbucketBranche(object):
     
     def __init__(self, kwargs):
         self.commits = []
@@ -177,15 +201,17 @@ class BitbucketBranches(object):
             self.latestChangeset = kwargs['latestChangeset']
         if 'isDefault' in kwargs:
             self.isDefault = kwargs['isDefault']
+
+
+           
             
-            
-class BitbucketCommits(object):
+class BitbucketCommit(object):
     
     def __init__(self, kwargs):
         if kwargs is None: 
             self.id = ''
             self.displayId = ''
-            self.author = BitbucketUser()
+            self.author = BitbucketRegularUser()
             self.authorTimestamp = None
             self.message = ''
             self.parents = []
@@ -198,13 +224,15 @@ class BitbucketCommits(object):
         if 'displayId' in kwargs:
             self.displayId = kwargs['displayId']
         if 'author' in kwargs:
-            self.author = BitbucketUser(kwargs['author'])
+            self.author = BitbucketRegularUser(kwargs['author'])
         if 'authorTimestamp' in kwargs:
             self.authorTimestamp = kwargs['authorTimestamp']
         if 'message' in kwargs:
             self.message = kwargs['message']
         if 'parents' in kwargs:
-            self.parents = [BitbucketCommits(kwargs['parents'])]
+            self.parents = [BitbucketCommit(kwargs['parents'])]
+
+
 
 
 class BitbucketRepo:
@@ -256,19 +284,20 @@ class BitbucketRepo:
             self.branches = kwargs['branches']
 
 
+
+
 class Bitbucket:
     
     def __init__(self):
-        self.user = BitbucketUser()
+        self.user = BitbucketLogedUser()
         self.has_access = False
         self.session = requests.Session()
         self.projects = []
-        self.repositories = []
         
     def Login(self, user_name, password):
-        self.user(username = user_name, password = password)
-        self.session.auth = requests.auth.HTTPBasicAuth(self.user.username, self.user.password)
-        url = bitbucket_api_link + users + '/'+ str(self.user.username)
+        self.user(slug = user_name, password = password)
+        self.session.auth = requests.auth.HTTPBasicAuth(self.user.slug, self.user.password)
+        url = bitbucket_api_link + users + '/'+ str(self.user.slug)
         try:
             httpGetResponse = self.session.get(url, timeout = 5.0)
             self.jsonResponse = json.loads(httpGetResponse.text)
@@ -316,13 +345,16 @@ class Bitbucket:
         except ConnectionError:
             return {'errors': [{'message': 'There is no server connection.'}]}
         
+        except ReadTimeout:
+            return {'errors': [{'message': 'There is no server connection. Timeout was reached.'}]}
+        
     def get_repo_branches(self, repo):
         if self.has_access == True:
             url = bitbucket_api_link + projects_repo + '/' + repo.project.key + '/' + module_repos + '/' + repo.slug + '/' + branches
             rsp = self.Paged_response_parse(url)
             if 'values' in rsp:
                 for value in rsp['values']:
-                    branch = BitbucketBranches(value)
+                    branch = BitbucketBranche(value)
                     commits_on_this_branch = self.get_repo_commits_on_branch(repo, branch)
                     branch.commits += commits_on_this_branch
                     repo.branches.append(branch)
@@ -333,7 +365,7 @@ class Bitbucket:
         requested_commits = []
         if 'values' in rsp:
             for value in rsp['values']:
-                requested_commits.append(BitbucketCommits(value))
+                requested_commits.append(BitbucketCommit(value))
                 
             return requested_commits
         elif 'errors' in rsp:
@@ -345,25 +377,31 @@ class Bitbucket:
             rsp = self.Paged_response_parse(url)
             if 'values' in rsp:
                 for value in rsp['values']:
-                    self.projects.append(BitbucketProject(value))
+                    project = BitbucketProject(value)
+                    project.repositories = self.Get_modules_repo(project.key)
+                    self.projects.append(project)
+                    
             else:
                 return
         else:
             return
 
 
-    def Get_modules_repo(self, project=u''):
+    def Get_modules_repo(self, project_key=u''):
         if self.has_access == True:
-            if project == u'':
+            repositories = []
+            if project_key == u'':
                 url = bitbucket_api_link + module_repos
             else:
-                url = bitbucket_api_link + projects_repo + u'/' + project + u'/' + module_repos
+                url = bitbucket_api_link + projects_repo + u'/' + project_key + u'/' + module_repos
             
             rsp = self.Paged_response_parse(url)
             if 'values' in rsp:
                 for value in rsp['values']:
                     repo = BitbucketRepo(value)
                     self.get_repo_branches(repo)
-                    self.repositories.append(repo)
+                    repositories.append(repo)
+                    
+            return repositories
                     
                            

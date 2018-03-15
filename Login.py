@@ -26,8 +26,8 @@ class LoginScreen(Screen):
         self.left_top_cord = ()
         if session != None:
             self.connection_session = session
-            if self.connection_session.user.username != u'':
-                self.username.text = self.connection_session.user.username
+            if self.connection_session.user.slug != u'':
+                self.username.text = self.connection_session.user.slug
                 self.password.text = self.connection_session.user.password
                 self.saveUserData.active = True
                 self.autologin = True
@@ -58,9 +58,8 @@ class LoginScreen(Screen):
             else:
                 self.connection_session.user.delete_saved_user()
             
-            if self.connection_session.projects == [] and self.connection_session.repositories == []:
-                self.connection_session.Get_projects()    
-                self.connection_session.Get_modules_repo()
+            if self.connection_session.projects == []:
+                self.connection_session.Get_projects()
                 
             #change screen to RepoSelector
             self.manager.transition.duration = 0

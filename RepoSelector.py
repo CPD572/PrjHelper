@@ -69,12 +69,11 @@ class RepoSelectorScreen(Screen):
         if self.connection_session != None and self.entered == False:
                 
             #repo.project.key == 'MLP' and
-            repos=list(filter(lambda repo: repo.project.key == 'MLP' and not re.match('00_\w+', repo.name)
-                                 and not re.match('(\w|\W)+_demo$', repo.name) and not re.match('(\w|\W)+_test$', repo.name), self.connection_session.repositories))
+            mlp_project=list(filter(lambda project: project.key == 'MLP', self.connection_session.projects))[-1]
             
             for item in list(self.repositories.keys()):
                 for regEx in self.RegEx[item]:
-                    self.repositories[item] += list(filter(lambda repo: re.match(regEx, repo.name), repos))
+                    self.repositories[item] += list(filter(lambda repo: re.match(regEx, repo.name), mlp_project.repositories))
             
             
             for id in self.tree_data_ids_list:
@@ -96,19 +95,10 @@ class RepoSelectorScreen(Screen):
             for tabb in self.tabbs:
                 selected = SelectedItemsView(label_text = tabb.text)
                 self.ids.selected_items_lists.add_widget(selected)
-                #print(selected.label_text + str(selected.odd_color)+ str(selected.even_color))
                     
             self.ids.main_box.add_widget(MenuBox(change_view_button_text = 'All Projects', on_menu_button_release = self.on_change_view))
             self.entered = True
                         
-    
-    #def on_enter(self, *args):
-    #    Screen.on_enter(self, *args)
-    #    new_width, new_height = (1600,400)
-    #    
-    #    old_width, old_height = Window.size
-    #    Window.left, Window.top = (Window.left-(new_width-old_width)/2,Window.top-(new_height-old_height)/2)
-    #    Window.size = (new_width, new_height)
         
     def on_selectable_item_double_tap(self,object,item):
         instance_to_dispatch = list(filter(lambda x: x.label_text == self.ids.root_tabb.current_tab.text,                                                                 
