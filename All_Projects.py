@@ -8,6 +8,7 @@ from kivy.uix.treeview import TreeViewLabel, TreeView
 from kivy.core.window import Window
 from kivy.lang import Builder
 from sys import platform
+import BitbucketAPI as Bitbucket
 
 Builder.load_file('projects_view.kv')
     
@@ -63,6 +64,26 @@ class ProjectsScreen(Screen):
         self.manager.transition.duration = 0                                                                                     
         self.manager.current = 'RepoSelector'
         
-    def on_selectable_item_double_tap(self,object,item):
-        self.selected_items_view.dispatch('on_add_item', item)
+    def on_selectable_item_double_tap(self,object,widget,item):
+        
+        branch = None
+        commit = None
+        if isinstance(item, Bitbucket.BitbucketCommit):
+            commit = item
+            branch = widget.parent_node.item
+            repo = widget.parent_node.parent_node.item
+        elif isinstance(item, Bitbucket.BitbucketBranch):
+            repo = widget.parent_node.item
+            branch = item
+            if branch != []:
+                commit = branch.commits[0]
+        elif isinstance(item, Bitbucket.BitbucketRepo):
+            repo = item
+            if repo.branches != []:
+                branch = list(filter(lambda commit: commit.displayId == "master", repo.branches))[-1]
+                if branch.commits != []:
+                    commit = branch.commits[0]
+            
+        selected_item = Bitbucket.SelectedRepoVersion(repo, branch, commit)
+        self.selected_items_view.dispatch('on_add_item', selected_item, selected_item.displayText)
         

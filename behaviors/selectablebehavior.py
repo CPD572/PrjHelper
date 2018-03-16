@@ -30,7 +30,7 @@ class SelectedItem(BoxLayout):
     def __init__(self, text, **kwargs):
         self.item_name = text
         capital_letters_number = len(re.findall('([A-Z])', text))
-        self.item_name_len = capital_letters_number*9.5 + (len(text)-capital_letters_number)*7.5
+        self.item_name_len = capital_letters_number*8 + (len(text)-capital_letters_number)*7.5
         super(SelectedItem, self).__init__(**kwargs)
     
     def on_delete(self):
@@ -52,13 +52,13 @@ class SelectedItemsView(BoxLayout):
         selectedItem_height = Window.size[1] - self.label_height - self.spacing
         self.stack.bind(minimum_size=lambda w, size: w.setter('height')(w, (size[1] if size[1] > selectedItem_height else selectedItem_height)))
         
-    def on_add_item(self, item):
+    def on_add_item(self, item, item_text):
         if not item in self.items:
             self.items.add(item)
-            self.stack.add_widget(SelectedItem(text = item.name))
+            self.stack.add_widget(SelectedItem(text = item_text))
         
     def on_delete_item(self, widget):
-        item_filtered = list(filter(lambda x: x.name == widget.item_name, self.items))
+        item_filtered = list(filter(lambda x: x.displayText == widget.item_name, self.items))
         if len(item_filtered) != 1:
             return
         item = item_filtered[-1]
@@ -77,13 +77,14 @@ class TreeViewSelectableItem(TreeViewLabel):
             self.text = text
 
     def on_touch_up(self, touch):
-        if self.is_selected:
+        if self.is_selected and not touch.is_mouse_scrolling:
             if touch.is_double_tap:
-                self.dispatch('on_double_tap', self.item)
+                self.dispatch('on_double_tap', self, self.item)
             
-            print(self.item)    
+            if not touch.is_mouse_scrolling:
+                pass
             
-    def on_double_tap(self,item):
+    def on_double_tap(self, widget, item):
         pass
     
     

@@ -177,7 +177,7 @@ class BitbucketProject:
 
 
 
-class BitbucketBranche(object):
+class BitbucketBranch(object):
     
     def __init__(self, kwargs):
         self.commits = []
@@ -354,7 +354,7 @@ class Bitbucket:
             rsp = self.Paged_response_parse(url)
             if 'values' in rsp:
                 for value in rsp['values']:
-                    branch = BitbucketBranche(value)
+                    branch = BitbucketBranch(value)
                     commits_on_this_branch = self.get_repo_commits_on_branch(repo, branch)
                     branch.commits += commits_on_this_branch
                     repo.branches.append(branch)
@@ -405,3 +405,20 @@ class Bitbucket:
             return repositories
                     
                            
+
+
+class SelectedRepoVersion(object):
+    def __init__(self,repo, branch=None, commit=None,**kwargs):
+        super(SelectedRepoVersion, self).__init__(**kwargs)
+        self.repo = repo
+        self.branch = branch
+        self.commit = commit
+        self.displayText = ''
+        if commit is not None and branch is not None:
+            self.displayText = repo.name+'/'+branch.displayId+'/'+commit.displayId
+        elif branch is not None and commit is None:
+            self.displayText = repo.name+'/'+branch.displayId
+        elif branch is None and commit is None:
+            self.displayText = repo.name+'/master'
+            
+            

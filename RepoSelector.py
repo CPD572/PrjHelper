@@ -16,9 +16,11 @@ from behaviors.menubehavior import MenuBox
 from sys import platform
 import re
 import time
+import BitbucketAPI as Bitbucket
 
 if 'linux' in platform:
     Builder.load_file('RepoSelector.kv')
+
      
 class RepoSelectorScreen(Screen):
     
@@ -73,7 +75,7 @@ class RepoSelectorScreen(Screen):
             
             for item in list(self.repositories.keys()):
                 for regEx in self.RegEx[item]:
-                    self.repositories[item] += list(filter(lambda repo: re.match(regEx, repo.name), mlp_project.repositories))
+                    self.repositories[item] += list(filter(lambda repo: re.match(regEx, repo.name) and not re.match("((\w|\W)+_demo|(\w|\W)+_test)", repo.name), mlp_project.repositories))
             
             
             for id in self.tree_data_ids_list:
@@ -100,10 +102,30 @@ class RepoSelectorScreen(Screen):
             self.entered = True
                         
         
-    def on_selectable_item_double_tap(self,object,item):
+    def on_selectable_item_double_tap(self,object,widget,item):
         instance_to_dispatch = list(filter(lambda x: x.label_text == self.ids.root_tabb.current_tab.text,                                                                 
                                    list(filter(lambda n: isinstance(n, SelectedItemsView),self.ids.selected_items_lists.children))))[-1]
-        instance_to_dispatch.dispatch('on_add_item', item)   
+        
+        branch = None
+        commit = None
+        if isinstance(item, Bitbucket.BitbucketCommit):
+            commit = item
+            branch = widget.parent_node.item
+            repo = widget.parent_node.parent_node.item
+        elif isinstance(item, Bitbucket.BitbucketBranch):
+            repo = widget.parent_node.item
+            branch = item
+            if branch != []:
+                commit = branch.commits[0]
+        elif isinstance(item, Bitbucket.BitbucketRepo):
+            repo = item
+            if repo.branches != []:
+                branch = list(filter(lambda commit: commit.displayId == "master", repo.branches))[-1]
+                if branch.commits != []:
+                    commit = branch.commits[0]
+            
+        selected_item = Bitbucket.SelectedRepoVersion(repo, branch, commit)
+        instance_to_dispatch.dispatch('on_add_item', selected_item, selected_item.displayText)
         
     def on_change_view(self):
         self.manager.transition.duration = 0                                                                                     
