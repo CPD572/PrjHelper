@@ -422,3 +422,6 @@ class SelectedRepoVersion(object):
             self.displayText = repo.name+'/master'
             
             
+    def __eq__(self, other):
+        return self.repo is other.repo and self.branch is other.branch and self.commit is other.commit
+            

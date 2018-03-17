@@ -28,7 +28,7 @@ class RepoSelectorScreen(Screen):
         
         super(RepoSelectorScreen, self).__init__(**kwargs)
         self.id = 'repo_selector_screen'
-        self.tabbs = reversed(self.ids.root_tabb.get_tab_list())
+        self.tabs = list(reversed(self.ids.root_tabb.get_tab_list()))
         self.connection_session = session
         
         
@@ -94,13 +94,14 @@ class RepoSelectorScreen(Screen):
                             selectableCommit.bind(on_double_tap = self.on_selectable_item_double_tap)
                             tree_view.add_node(selectableCommit, selectableBranch)
                     
-            for tabb in self.tabbs:
+            for tabb in self.tabs:
                 selected = SelectedItemsView(label_text = tabb.text)
                 self.ids.selected_items_lists.add_widget(selected)
                     
             self.ids.main_box.add_widget(MenuBox(change_view_button_text = 'All Projects', on_menu_button_release = self.on_change_view))
             self.entered = True
-                        
+
+
         
     def on_selectable_item_double_tap(self,object,widget,item):
         instance_to_dispatch = list(filter(lambda x: x.label_text == self.ids.root_tabb.current_tab.text,                                                                 

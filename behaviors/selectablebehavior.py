@@ -35,6 +35,9 @@ class SelectedItem(BoxLayout):
     
     def on_delete(self):
         self.parent.parent.parent.dispatch('on_delete_item', self)
+        
+    #def __eq__(self, other):
+    #    return self.item_name == other.item_name
     
 class SelectedItemsView(BoxLayout):
     
@@ -48,13 +51,14 @@ class SelectedItemsView(BoxLayout):
         self.label_height = '30dp'
         self.label_text = label_text
         self.stack = self.ids.stack
-        self.items = set()
+        self.items = list()
         selectedItem_height = Window.size[1] - self.label_height - self.spacing
         self.stack.bind(minimum_size=lambda w, size: w.setter('height')(w, (size[1] if size[1] > selectedItem_height else selectedItem_height)))
         
+    #НЕ РАБОТАЕТ!!!
     def on_add_item(self, item, item_text):
         if not item in self.items:
-            self.items.add(item)
+            self.items.append(item)
             self.stack.add_widget(SelectedItem(text = item_text))
         
     def on_delete_item(self, widget):
@@ -79,6 +83,7 @@ class TreeViewSelectableItem(TreeViewLabel):
     def on_touch_up(self, touch):
         if self.is_selected and not touch.is_mouse_scrolling:
             if touch.is_double_tap:
+                self.is_selected = False
                 self.dispatch('on_double_tap', self, self.item)
             
             if not touch.is_mouse_scrolling:
@@ -86,6 +91,5 @@ class TreeViewSelectableItem(TreeViewLabel):
             
     def on_double_tap(self, widget, item):
         pass
-    
-    
+
     
