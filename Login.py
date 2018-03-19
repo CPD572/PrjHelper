@@ -1,6 +1,7 @@
 #!/usr/bin/kivy
 # -*- coding: utf-8 -*-
 
+from kivy.config import Config
 from BitbucketAPI import Bitbucket
 import Popups
 from kivy.core.window import Window
@@ -11,8 +12,64 @@ from sys import platform
 import time
 
 
-if 'linux' in platform:
-    Builder.load_file('Login.kv')
+Builder.load_string("""
+<CustomButton@Button>:
+    font_size: 16
+
+<LoginScreen>:
+    username: user_name
+    password: password
+    saveUserData: isSaved
+    
+    BoxLayout:
+        id: login
+        orientation: "vertical"
+        padding: 10
+        spacing: 10
+        
+        BoxLayout:
+            Label:
+                text: 'User Name'
+                size_hint_x: .7
+            TextInput:
+                id: user_name
+                multiline: False
+                write_tab: False
+                selection_color: [0.1843, 0.6549, 0.8313, .5]
+                focus: True
+        BoxLayout:
+            Label:
+                text: 'Password'
+                size_hint_x: .7
+            TextInput:
+                id: password
+                multiline: False
+                write_tab: False
+                password: True
+                
+        BoxLayout:
+            size_hint: [None, None]
+            height: "20dp"
+            orientation: "horizontal"
+            pos_hint: {"right": .95, "bottom": 0}
+            Label:
+                text: 'Save login'
+                font_size: 14
+            CheckBox:
+                id: isSaved
+                #on_active: root.on_save_data_checkbox(self, self.active)
+                size_hint: [.1, 1]
+    
+        BoxLayout:
+            size_hint_y: None
+            width: 100
+            height: "30dp"
+            CustomButton:
+                text: "Submit"
+                pos_hint: {"center_x": .5, "bottom":1}
+                on_release: root.Submit()
+            
+""")
 
 class LoginScreen(Screen):
 
@@ -95,7 +152,7 @@ class LoginScreen(Screen):
         self.left_top_cord = (Window.left, Window.top)
         
     def on_enter(self, *args):
+        Config.set('graphics', 'resizable', 'False')
         Screen.on_enter(self, *args)
-        #self.Submit()
 
         

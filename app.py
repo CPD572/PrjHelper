@@ -1,6 +1,7 @@
 #!/usr/bin/kivy
 # -*- coding: utf-8 -*-
-
+import os
+os.environ['KIVY_IMAGE'] = 'pil,sdl2'
 from BitbucketAPI import Bitbucket
 from Login import LoginScreen
 from All_Projects import ProjectsScreen
@@ -8,7 +9,6 @@ from RepoSelector import RepoSelectorScreen
 from kivy.app import App
 from kivy.config import Config
 from kivy.uix.screenmanager import ScreenManager
-
 
 
 class ProjectConstructorApp(App):

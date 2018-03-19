@@ -12,14 +12,132 @@ from kivy.core.window import Window
 from kivy.lang import Builder
 from kivy.properties import StringProperty, NumericProperty
 from behaviors.selectablebehavior import SelectedItem, SelectedItemsView, TreeViewSelectableItem
-from behaviors.menubehavior import MenuBox
+from behaviors.menubehavior import MenuBox, MenuButton
 from sys import platform
 import re
 import time
 import BitbucketAPI as Bitbucket
 
-if 'linux' in platform:
-    Builder.load_file('RepoSelector.kv')
+Builder.load_string("""
+#:import hex kivy.utils.get_color_from_hex
+
+<RepoSelectorScreen>:
+    BoxLayout:
+        orientation: 'horizontal'
+        id: main_box
+        spacing: 5
+        
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_x: None
+            width: 585
+            id: selected_view
+            
+            TabbedPanel:
+                do_default_tab: False
+                tab_height: 30
+                id: root_tabb
+                
+                TabbedPanelItem:
+                    id: asw
+                    text: "ASW"
+                    ScrollView:
+                        bar_width: '9dp'
+                        TreeView:
+                            id: asw_tree_view
+                            size_hint_y: None
+                        
+                    
+                TabbedPanelItem:
+                    id: bsw
+                    text: "BSW"
+                    TabbedPanel:
+                        do_default_tab: False
+                        tab_height: 30
+                        
+                        TabbedPanelItem:
+                            id: bsw_hmi
+                            text: "HMI"
+                            ScrollView:
+                                bar_width: '9dp'
+                                TreeView:
+                                    id: bsw_hmi_tree_view
+                                    size_hint_y: None
+                                
+                        TabbedPanelItem:
+                            id: bsw_com
+                            text: "COM"
+                            ScrollView:
+                                bar_width: '9dp'
+                                TreeView:
+                                    id: bsw_com_tree_view
+                                    size_hint_y: None
+                                
+                        TabbedPanelItem:
+                            id: bsw_io
+                            text: "IO"
+                            ScrollView:
+                                bar_width: '9dp'
+                                TreeView:
+                                    id: bsw_io_tree_view
+                                    size_hint_y: None
+                        
+                TabbedPanelItem:
+                    id: esw
+                    text: "ESW"
+                    TabbedPanel:
+                        do_default_tab: False
+                        tab_height: 30
+                        
+                        TabbedPanelItem:
+                            id: esw_sens
+                            text: "SENS"
+                            ScrollView:
+                                bar_width: '9dp'
+                                TreeView:
+                                    id: esw_sens_tree_view
+                                    size_hint_y: None
+                                
+                        TabbedPanelItem:
+                            id: esw_act
+                            text: "ACT"
+                            ScrollView:
+                                bar_width: '9dp'
+                                TreeView:
+                                    id: esw_act_tree_view
+                                    size_hint_y: None
+                                
+                        TabbedPanelItem:
+                            id: esw_pwrmng
+                            text: "PWRMNG"
+                            ScrollView:
+                                bar_width: '9dp'
+                                TreeView:
+                                    id: esw_pwrmng_tree_view
+                                    size_hint_y: None
+                                    
+                TabbedPanelItem:
+                    id: lib
+                    text: "LIB"
+                    BoxLayout:
+                    ScrollView:
+                        bar_width: '9dp'
+                        TreeView:
+                            id: lib_tree_view
+                            size_hint_y: None
+                            
+                            
+        BoxLayout:
+            orientation: 'horizontal'
+            id: selected_items_lists
+            spacing: 5
+#            canvas:
+#                Color:
+#                    rgba: 1, 0, 0, 1
+#                Rectangle:
+#                    size: self.size
+#                    pos: self.pos
+""")
 
      
 class RepoSelectorScreen(Screen):
@@ -60,6 +178,7 @@ class RepoSelectorScreen(Screen):
             }
         
         self.entered = False
+        self.selectedItemViews = []
         
     def on_pre_enter(self, *args):
         Screen.on_pre_enter(self, *args)
@@ -93,15 +212,26 @@ class RepoSelectorScreen(Screen):
                             selectableCommit = TreeViewSelectableItem(item = commit, text = commit.message)
                             selectableCommit.bind(on_double_tap = self.on_selectable_item_double_tap)
                             tree_view.add_node(selectableCommit, selectableBranch)
-                    
+                   
             for tabb in self.tabs:
                 selected = SelectedItemsView(label_text = tabb.text)
                 self.ids.selected_items_lists.add_widget(selected)
+                self.selectedItemViews.append(selected)
                     
-            self.ids.main_box.add_widget(MenuBox(change_view_button_text = 'All Projects', on_menu_button_release = self.on_change_view))
+            menu = MenuBox()
+            change_view_button = MenuButton(text = 'All projects')
+            change_view_button.bind(on_release = self.on_change_view)
+            clone_button = MenuButton(text = '  Clone\nselected')
+            clone_button.bind(on_release = self.clone_selected)
+            menu.add_button(change_view_button)
+            menu.add_button(clone_button)
+            self.ids.main_box.add_widget(menu)
             self.entered = True
 
-
+    def clone_selected(self, button):
+        for view in self.selectedItemViews:
+            for item in view.items:
+                print(item)
         
     def on_selectable_item_double_tap(self,object,widget,item):
         instance_to_dispatch = list(filter(lambda x: x.label_text == self.ids.root_tabb.current_tab.text,                                                                 
@@ -128,6 +258,6 @@ class RepoSelectorScreen(Screen):
         selected_item = Bitbucket.SelectedRepoVersion(repo, branch, commit)
         instance_to_dispatch.dispatch('on_add_item', selected_item, selected_item.displayText)
         
-    def on_change_view(self):
+    def on_change_view(self, button):
         self.manager.transition.duration = 0                                                                                     
         self.manager.current = 'ProjectSelector'

@@ -42,14 +42,13 @@ def prettify(elem):
 
 class BitbucketRegularUser:
     def __init__(self, kwargs= None):
-        if kwargs is None:
-            self.slug = u''
-            self.id = u''
-            self.emailAddress = u''
-            self.displayName = u''
-            self.type = u''
-            self.link = u''
-        else:
+        self.slug = u''
+        self.id = u''
+        self.emailAddress = u''
+        self.displayName = u''
+        self.type = u''
+        self.link = u''
+        if kwargs is not None:
             self(**kwargs)
             
     def __str__(self):

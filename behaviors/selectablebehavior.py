@@ -17,15 +17,69 @@ if 'win' in platform:
 else:
     file_route_spliter = '/'
     
+
+Builder.load_string("""
+#:import hex kivy.utils.get_color_from_hex
+
+<HoverButton>:
+    size_hint: [None, None]
+    background_normal: self.inactive_img if not self.hovered else self.active_img
+    background_down: self.active_img
+    size: 15, 14
+    pos_hint: {'center_x': .5, "center_y":.5}
+
+
+<SelectedItem>:
+    orientation: 'horizontal'
+    size_hint: [None, None]
+    size: self.item_name_len + 20, 15
+    canvas:
+        Color:
+            rgba: hex('#303030')
+        RoundedRectangle:
+            size: self.size
+            pos: self.pos
+            radius: [2,]
+    Label:
+        text: root.item_name
+        font_size: 15
+    HoverButton:
+        on_release: root.on_delete()
+        
+        
+<SelectedItemsView>:
+    spacing: 6
+    orientation: 'vertical'
+    size_hint: [1,1]
+    Label:
+        size_hint: [1, None]
+        height: root.label_height
+        text: root.label_text
+    ScrollView:
+        bar_width: '9dp'
+        #size_hint: [1,None]
+        StackLayout:
+            size_hint: [1,None]
+            id: stack
+            height: root.height - root.label_height - root.spacing
+            orientation: 'lr-tb'
+            spacing: 5
+            padding: 5
+            canvas:
+                Color:
+                    rgba: 1, 1, 1, 1
+                RoundedRectangle:
+                    size: self.size
+                    pos: self.pos
+                    radius: [5,]
     
-Builder.load_file('behaviors'+file_route_spliter+'selectablebehavior.kv')
-    
- 
+""")
  
 class SelectedItem(BoxLayout):
     
     class HoverButton(Button, HoverBehavior):
-        pass
+        active_img = 'img'+file_route_spliter+'close_active.png'
+        inactive_img = 'img'+file_route_spliter+'close_inactive.png'
     
     def __init__(self, text, **kwargs):
         self.item_name = text
@@ -55,7 +109,6 @@ class SelectedItemsView(BoxLayout):
         selectedItem_height = Window.size[1] - self.label_height - self.spacing
         self.stack.bind(minimum_size=lambda w, size: w.setter('height')(w, (size[1] if size[1] > selectedItem_height else selectedItem_height)))
         
-    #НЕ РАБОТАЕТ!!!
     def on_add_item(self, item, item_text):
         if not item in self.items:
             self.items.append(item)
