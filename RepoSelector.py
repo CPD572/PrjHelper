@@ -189,7 +189,6 @@ class RepoSelectorScreen(Screen):
         Window.size = (new_width, new_height)
         if self.connection_session != None and self.entered == False:
                 
-            #repo.project.key == 'MLP' and
             mlp_project=list(filter(lambda project: project.key == 'MLP', self.connection_session.projects))[-1]
             
             for item in list(self.repositories.keys()):
@@ -246,7 +245,7 @@ class RepoSelectorScreen(Screen):
         elif isinstance(item, Bitbucket.BitbucketBranch):
             repo = widget.parent_node.item
             branch = item
-            if branch != []:
+            if branch.commits != []:
                 commit = branch.commits[0]
         elif isinstance(item, Bitbucket.BitbucketRepo):
             repo = item
@@ -256,7 +255,9 @@ class RepoSelectorScreen(Screen):
                     commit = branch.commits[0]
             
         selected_item = Bitbucket.SelectedRepoVersion(repo, branch, commit)
-        instance_to_dispatch.dispatch('on_add_item', selected_item, selected_item.displayText)
+        selected_item_text = selected_item.displayText.split('/')[0]
+        tooltip_text = selected_item.displayText.replace(selected_item_text+'/', '')
+        instance_to_dispatch.dispatch('on_add_item', selected_item, selected_item_text, tooltip_text)
         
     def on_change_view(self, button):
         self.manager.transition.duration = 0                                                                                     

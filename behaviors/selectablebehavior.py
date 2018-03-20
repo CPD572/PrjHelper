@@ -5,12 +5,15 @@ from kivy.uix.treeview import TreeViewLabel
 from kivy.uix.button import Button
 from kivy.uix.stacklayout import StackLayout
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.label import Label
+from kivy.uix.widget import Widget
 from kivy.lang import Builder
 from kivy.properties import StringProperty, NumericProperty
 from behaviors.hoverbehavior import HoverBehavior
 from sys import platform
 import re
 from kivy.core.window import Window
+
 
 if 'win' in platform:
     file_route_spliter = '\\'
@@ -20,6 +23,16 @@ else:
 
 Builder.load_string("""
 #:import hex kivy.utils.get_color_from_hex
+
+<Tooltip>:
+    size_hint: None, None
+    size: self.texture_size[0]+5, self.texture_size[1]+5
+    canvas.before:
+        Color:
+            rgba: 0.2, 0.2, 0.2, 0.7
+        Rectangle:
+            size: self.size
+            pos: self.pos
 
 <HoverButton>:
     size_hint: [None, None]
@@ -32,7 +45,6 @@ Builder.load_string("""
 <SelectedItem>:
     orientation: 'horizontal'
     size_hint: [None, None]
-    size: self.item_name_len + 20, 15
     canvas:
         Color:
             rgba: hex('#303030')
@@ -40,11 +52,6 @@ Builder.load_string("""
             size: self.size
             pos: self.pos
             radius: [2,]
-    Label:
-        text: root.item_name
-        font_size: 15
-    HoverButton:
-        on_release: root.on_delete()
         
         
 <SelectedItemsView>:
@@ -57,7 +64,6 @@ Builder.load_string("""
         text: root.label_text
     ScrollView:
         bar_width: '9dp'
-        #size_hint: [1,None]
         StackLayout:
             size_hint: [1,None]
             id: stack
@@ -74,24 +80,44 @@ Builder.load_string("""
                     radius: [5,]
     
 """)
- 
-class SelectedItem(BoxLayout):
+
+class ToolTip(Label):
+    pass
+
+class HoverButton(Button, HoverBehavior):                        
+    active_img = 'img'+file_route_spliter+'close_active.png'     
+    inactive_img = 'img'+file_route_spliter+'close_inactive.png' 
+
+class SelectedItemLabel(Label, HoverBehavior):
     
-    class HoverButton(Button, HoverBehavior):
-        active_img = 'img'+file_route_spliter+'close_active.png'
-        inactive_img = 'img'+file_route_spliter+'close_inactive.png'
-    
-    def __init__(self, text, **kwargs):
-        self.item_name = text
+    def __init__(self, text, tooltip_text, **kwargs):
+        self.text = text
+        self.tooltip = ToolTip()
+        self.tooltip.text = tooltip_text
+        self.disabled_color = [1,1,1,1]
         capital_letters_number = len(re.findall('([A-Z])', text))
-        self.item_name_len = capital_letters_number*8 + (len(text)-capital_letters_number)*7.5
-        super(SelectedItem, self).__init__(**kwargs)
+        self.item_name_len = (capital_letters_number+1)*8 + (len(text)-capital_letters_number)*7.5
+        super(SelectedItemLabel, self).__init__(**kwargs)
     
-    def on_delete(self):
-        self.parent.parent.parent.dispatch('on_delete_item', self)
+    def on_enter(self, pos):
+        self.tooltip.pos = (pos[0]+20, pos[1] - 2 - self.tooltip.size[1])
+        Window.add_widget(self.tooltip)
         
-    #def __eq__(self, other):
-    #    return self.item_name == other.item_name
+    def on_leave(self, pos):
+        Window.remove_widget(self.tooltip)
+   
+class SelectedItem(BoxLayout):
+    def __init__(self, text, tooltip_text, **kwargs):
+        super(SelectedItem, self).__init__(**kwargs)
+        self.label = SelectedItemLabel(text, tooltip_text)
+        self.add_widget(self.label)
+        self.button = HoverButton()
+        self.button.bind(on_release = self.on_delete)
+        self.add_widget(self.button)
+        self.size = (self.label.item_name_len+self.button.size[0]+2, self.button.size[1]+2)
+    
+    def on_delete(self, button):
+        self.parent.parent.parent.dispatch('on_delete_item', self)
     
 class SelectedItemsView(BoxLayout):
     
@@ -106,21 +132,31 @@ class SelectedItemsView(BoxLayout):
         self.label_text = label_text
         self.stack = self.ids.stack
         self.items = list()
-        selectedItem_height = Window.size[1] - self.label_height - self.spacing
-        self.stack.bind(minimum_size=lambda w, size: w.setter('height')(w, (size[1] if size[1] > selectedItem_height else selectedItem_height)))
+        self.widgets = list()
+        self.selectedItem_height = Window.size[1] - self.label_height - self.spacing
+        self.stack.bind(minimum_size=lambda w, size: w.setter('height')(w, (size[1] if size[1] > self.selectedItem_height else self.selectedItem_height)))
         
-    def on_add_item(self, item, item_text):
-        if not item in self.items:
+    def on_add_item(self, item, item_text, tooltip_text):
+        if list(filter(lambda widget: widget.label.text == item_text, self.widgets)) == []:
             self.items.append(item)
-            self.stack.add_widget(SelectedItem(text = item_text))
+            new_widget = SelectedItem(text = item_text, tooltip_text=tooltip_text)
+            self.widgets.append(new_widget)
+            self.stack.add_widget(new_widget)
+            
+        elif not item in self.items:
+            pass
         
     def on_delete_item(self, widget):
-        item_filtered = list(filter(lambda x: x.displayText == widget.item_name, self.items))
+        item_filtered = list(filter(lambda x: widget.label.text in x.displayText, self.items))
         if len(item_filtered) != 1:
             return
         item = item_filtered[-1]
         self.items.remove(item)
+        self.widgets.remove(widget)
         self.stack.remove_widget(widget)
+        
+    #def on_size(self):
+        
 
     
 class TreeViewSelectableItem(TreeViewLabel):

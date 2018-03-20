@@ -423,4 +423,6 @@ class SelectedRepoVersion(object):
             
     def __eq__(self, other):
         return self.repo is other.repo and self.branch is other.branch and self.commit is other.commit
-            
+    
+    def __str__(self):
+        return '%s' % self.displayText

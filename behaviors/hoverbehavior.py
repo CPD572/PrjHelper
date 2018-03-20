@@ -37,12 +37,12 @@ class HoverBehavior(object):
         self.border_point = pos
         self.hovered = inside
         if inside:
-            self.dispatch('on_enter')
+            self.dispatch('on_enter', pos)
         else:
-            self.dispatch('on_leave')
+            self.dispatch('on_leave', pos)
 
-    def on_enter(self):
+    def on_enter(self, pos):
         pass
 
-    def on_leave(self):
+    def on_leave(self, pos):
         pass
