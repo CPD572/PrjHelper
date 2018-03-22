@@ -107,7 +107,7 @@ class ProjectsScreen(Screen):
         elif isinstance(item, Bitbucket.BitbucketBranch):
             repo = widget.parent_node.item
             branch = item
-            if branch != []:
+            if branch.commits != []:
                 commit = branch.commits[0]
         elif isinstance(item, Bitbucket.BitbucketRepo):
             repo = item
@@ -117,7 +117,9 @@ class ProjectsScreen(Screen):
                     commit = branch.commits[0]
             
         selected_item = Bitbucket.SelectedRepoVersion(repo, branch, commit)
-        self.selected_items_view.dispatch('on_add_item', selected_item, selected_item.displayText)
+        selected_item_text = selected_item.displayText.split('/')[0]
+        tooltip_text = selected_item.displayText.replace(selected_item_text+'/', '')
+        self.selected_items_view.dispatch('on_add_item', selected_item, selected_item_text, tooltip_text)
         
     def clone_selected(self, button):
         for item in self.selected_items_view.items:

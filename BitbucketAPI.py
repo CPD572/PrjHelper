@@ -73,6 +73,7 @@ class BitbucketRegularUser:
  
 class BitbucketLogedUser(BitbucketRegularUser):                
     def __init__(self, **kwargs):
+        print(os.path.abspath(''))
         super(BitbucketLogedUser, self).__init__(kwargs)
         self.password = u''
         self.encoded_password = u''
@@ -136,6 +137,7 @@ class BitbucketLogedUser(BitbucketRegularUser):
             time_tag.text = str(created.time())[:8]
             with open(userfile,'w+') as f:
                 print(prettify(user_data_tag), file=f)
+                
                 
     def delete_saved_user(self):
         if self.is_user_data_saved():
