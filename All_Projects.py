@@ -9,6 +9,7 @@ from kivy.core.window import Window
 from kivy.lang import Builder
 from sys import platform
 import BitbucketAPI as Bitbucket
+from behaviors.windowbehavior import adapt_window
 
 Builder.load_string("""
     
@@ -87,10 +88,7 @@ class ProjectsScreen(Screen):
             
     def on_enter(self, *args):
         Screen.on_enter(self, *args)
-        new_width, new_height = ((len(self.connection_session.projects)+4)*100,400)
-        old_width, old_height = Window.size
-        Window.left, Window.top = (Window.left-(new_width-old_width)/2,Window.top-(new_height-old_height)/2)
-        Window.size = (new_width, new_height)
+        adapt_window(((len(self.connection_session.projects)+4)*100,400))
         
     def on_change_view(self, button):
         self.manager.transition.duration = 0                                                                                     

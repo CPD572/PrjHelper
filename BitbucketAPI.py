@@ -73,7 +73,7 @@ class BitbucketRegularUser:
  
 class BitbucketLogedUser(BitbucketRegularUser):                
     def __init__(self, **kwargs):
-        print(os.path.abspath(''))
+        #print(os.path.abspath(''))
         super(BitbucketLogedUser, self).__init__(kwargs)
         self.password = u''
         self.encoded_password = u''
@@ -294,6 +294,7 @@ class Bitbucket:
         self.has_access = False
         self.session = requests.Session()
         self.projects = []
+        self.progress_string = "Starting load data from Bitbucket"
         
     def Login(self, user_name, password):
         self.user(slug = user_name, password = password)
@@ -381,9 +382,10 @@ class Bitbucket:
                     project = BitbucketProject(value)
                     project.repositories = self.Get_modules_repo(project.key)
                     self.projects.append(project)
-                    
+                   
             else:
                 return
+            self.progress_string = "Finished" 
         else:
             return
 
@@ -400,6 +402,7 @@ class Bitbucket:
             if 'values' in rsp:
                 for value in rsp['values']:
                     repo = BitbucketRepo(value)
+                    self.progress_string = "Load " + repo.name + " data"
                     self.get_repo_branches(repo)
                     repositories.append(repo)
                     

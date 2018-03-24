@@ -10,7 +10,10 @@ from kivy.properties import ObjectProperty
 from kivy.uix.screenmanager import Screen
 from sys import platform
 import time
+from threading import Thread
+from kivy.clock import Clock
 
+progress_string = "Starting load data from Bitbucket"
 
 Builder.load_string("""
 <CustomButton@Button>:
@@ -108,7 +111,7 @@ class LoginScreen(Screen):
             #check if Save login checkbox is checked
             if self.saveUserData.active == True:
                 
-            #   create XML with user data 'file.mlbu' 
+            #   create XML with user data 'usr.mlbu' 
                 self.connection_session.user.save_user()
             
             #the user data have to be deleted if "Save login" is unchecked
@@ -116,25 +119,33 @@ class LoginScreen(Screen):
                 self.connection_session.user.delete_saved_user()
             
             if self.connection_session.projects == []:
-                self.connection_session.Get_projects()
+                self.thread = Thread(target=self.connection_session.Get_projects)
+                self.thread.daemon = True
                 
-            #change screen to RepoSelector
-            self.manager.transition.duration = 0
-            self.manager.current = 'RepoSelector'
-            
-            self.loged_in = True
+                
+                self.popup = Popups.StandartPopup(message = self.connection_session.progress_string)
+                self.popup.bind(on_content_changed = self.on_popup_content)
+                self.timing_event = Clock.schedule_interval(self.on_popup_content, .1)
+                
+                self.thread.start()
+                self.popup.open()
+                
+            elif self.loged_in == True:
+                self.manager.transition.duration = 0
+                self.manager.current = 'RepoSelector'
+
         
         #if username or password are incorrect
         elif tmp == 0:
-            the_popup = Popups.ErrorPopup(self.connection_session.jsonResponse['errors'][0]['message'])
+            popup = Popups.ErrorPopup(message = self.connection_session.jsonResponse['errors'][0]['message'])
             self.loged_in = False
-            the_popup.open()
+            popup.open()
             self.reset_form()
             
         #No internet connection or server is not responding
         elif  tmp == -1:
-            the_popup = Popups.ErrorPopup('There is no server connection. Timeout was reached.')
-            the_popup.open()
+            popup = Popups.ErrorPopup(message = 'There is no server connection. Timeout was reached.')
+            popup.open()
             self.loged_in = False
 
             
@@ -154,5 +165,21 @@ class LoginScreen(Screen):
     def on_enter(self, *args):
         Config.set('graphics', 'resizable', 'False')
         Screen.on_enter(self, *args)
-
         
+        
+    def on_popup_content(self, _):
+        if self.connection_session.progress_string != "Finished":
+            self.popup.change_message(self.connection_session.progress_string)
+        else:
+            self.timing_event.cancel()
+            #change screen to RepoSelector        
+            self.manager.transition.duration = 0   
+            self.manager.current = 'RepoSelector'        
+            self.loged_in = True 
+            self.popup.dismiss(animation=False)
+  
+        
+    def on_pre_leave(self, *args):
+        Screen.on_pre_leave(self, *args)
+        if hasattr(self, 'thread'):
+            del self.thread

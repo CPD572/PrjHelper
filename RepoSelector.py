@@ -17,6 +17,7 @@ from sys import platform
 import re
 import time
 import BitbucketAPI as Bitbucket
+from behaviors.windowbehavior import adapt_window
 
 Builder.load_string("""
 #:import hex kivy.utils.get_color_from_hex
@@ -182,11 +183,7 @@ class RepoSelectorScreen(Screen):
         
     def on_pre_enter(self, *args):
         Screen.on_pre_enter(self, *args)
-        new_width, new_height = (1600,400)
-        
-        old_width, old_height = Window.size
-        Window.left, Window.top = (Window.left-(new_width-old_width)/2,Window.top-(new_height-old_height)/2)
-        Window.size = (new_width, new_height)
+        adapt_window((1600,400))
         if self.connection_session != None and self.entered == False:
                 
             mlp_project=list(filter(lambda project: project.key == 'MLP', self.connection_session.projects))[-1]
@@ -226,6 +223,7 @@ class RepoSelectorScreen(Screen):
             menu.add_button(clone_button)
             self.ids.main_box.add_widget(menu)
             self.entered = True
+            
 
     def clone_selected(self, button):
         for view in self.selectedItemViews:
@@ -262,3 +260,5 @@ class RepoSelectorScreen(Screen):
     def on_change_view(self, button):
         self.manager.transition.duration = 0                                                                                     
         self.manager.current = 'ProjectSelector'
+        
+        
