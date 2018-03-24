@@ -19,6 +19,7 @@ import time
 import BitbucketAPI as Bitbucket
 from behaviors.windowbehavior import adapt_window
 
+
 Builder.load_string("""
 #:import hex kivy.utils.get_color_from_hex
 
@@ -222,6 +223,7 @@ class RepoSelectorScreen(Screen):
             menu.add_button(change_view_button)
             menu.add_button(clone_button)
             self.ids.main_box.add_widget(menu)
+            
             self.entered = True
             
 

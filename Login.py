@@ -13,7 +13,8 @@ import time
 from threading import Thread
 from kivy.clock import Clock
 
-progress_string = "Starting load data from Bitbucket"
+load_finished = False
+timing_event = None
 
 Builder.load_string("""
 <CustomButton@Button>:
@@ -68,6 +69,7 @@ Builder.load_string("""
             width: 100
             height: "30dp"
             CustomButton:
+                id: submit_button
                 text: "Submit"
                 pos_hint: {"center_x": .5, "bottom":1}
                 on_release: root.Submit()
@@ -101,7 +103,7 @@ class LoginScreen(Screen):
         return self.connection_session.user.is_user_data_saved()
             
     def Submit(self):
-
+        global timing_event
         tmp = self.connection_session.Login(self.username.text, self.password.text)
         
         #if username and password are correct
@@ -124,8 +126,7 @@ class LoginScreen(Screen):
                 
                 
                 self.popup = Popups.StandartPopup(message = self.connection_session.progress_string)
-                self.popup.bind(on_content_changed = self.on_popup_content)
-                self.timing_event = Clock.schedule_interval(self.on_popup_content, .1)
+                timing_event = Clock.schedule_interval(self.on_popup_content, .1)
                 
                 self.thread.start()
                 self.popup.open()
@@ -165,18 +166,23 @@ class LoginScreen(Screen):
     def on_enter(self, *args):
         Config.set('graphics', 'resizable', 'False')
         Screen.on_enter(self, *args)
+        if self.autologin == True and self.loged_in == False:
+            self.ids.submit_button.trigger_action()
         
         
     def on_popup_content(self, _):
+        global load_finished, timing_event
         if self.connection_session.progress_string != "Finished":
             self.popup.change_message(self.connection_session.progress_string)
-        else:
-            self.timing_event.cancel()
+        elif load_finished is False:
+            self.popup.dismiss(animation=False)
+            load_finished = True
+        elif load_finished is True:
+            timing_event.cancel()
             #change screen to RepoSelector        
             self.manager.transition.duration = 0   
             self.manager.current = 'RepoSelector'        
             self.loged_in = True 
-            self.popup.dismiss(animation=False)
   
         
     def on_pre_leave(self, *args):
