@@ -11,7 +11,9 @@ from xml.dom import minidom
 import xml.etree.ElementTree as ElementTree
 from sys import platform
 from requests.exceptions import ConnectTimeout, ConnectionError, ReadTimeout
+import os, sys
 
+app_path = os.path.abspath(os.path.dirname(sys.argv[0]))
 if 'win' in platform:
     file_route_spliter = '\\'
 else:
@@ -27,7 +29,7 @@ page_start = '?start='
 
 module_repos = 'repos'
 
-userdatafolder = 'usr'
+userdatafolder = app_path + file_route_spliter + 'usr'
 userfile = userdatafolder + file_route_spliter + 'user.mlbu'
 password_separator = 'FF04'
 
@@ -73,7 +75,6 @@ class BitbucketRegularUser:
  
 class BitbucketLogedUser(BitbucketRegularUser):                
     def __init__(self, **kwargs):
-        #print(os.path.abspath(''))
         super(BitbucketLogedUser, self).__init__(kwargs)
         self.password = u''
         self.encoded_password = u''

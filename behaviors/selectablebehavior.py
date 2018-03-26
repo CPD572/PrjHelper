@@ -7,14 +7,15 @@ from kivy.uix.stacklayout import StackLayout
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.label import Label
 from kivy.uix.widget import Widget
+from kivy.core.window import Window
 from kivy.lang import Builder
 from kivy.properties import StringProperty, NumericProperty
 from behaviors.hoverbehavior import HoverBehavior
 from sys import platform
 import re
-from kivy.core.window import Window
+import os, sys
 
-
+app_path = os.path.abspath(os.path.dirname(sys.argv[0]))
 if 'win' in platform:
     file_route_spliter = '\\'
 else:
@@ -85,8 +86,8 @@ class ToolTip(Label):
     pass
 
 class HoverButton(Button, HoverBehavior):                        
-    active_img = 'img'+file_route_spliter+'close_active.png'     
-    inactive_img = 'img'+file_route_spliter+'close_inactive.png' 
+    active_img = app_path+ file_route_spliter + 'img'+file_route_spliter+'close_active.png'     
+    inactive_img = app_path + file_route_spliter +'img'+file_route_spliter+'close_inactive.png' 
 
 class SelectedItemLabel(Label, HoverBehavior):
     
