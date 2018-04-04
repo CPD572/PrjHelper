@@ -2,12 +2,40 @@
 # -*- coding: utf-8 -*-
 
 from kivy.core.window import Window
-from kivy.properties import StringProperty
+from kivy.properties import StringProperty, ListProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.popup import Popup
 from behaviors.windowbehavior import adapt_window, isNewWindowBigger
+
+class ContentPopup(Popup):
+    
+    #size = ListProperty([550, 150])
+    
+    def __init__(self, content_orientation = 'vertical', **kwargs):
+        super(ContentPopup, self).__init__(**kwargs)
+        self.box = BoxLayout(orientation = content_orientation)
+        self.auto_dismiss = True
+        self.window_size = [600,200]
+        self.old_size = ()
+        self.size_hint = None, None
+
+    def on_open(self):
+        if Window.size <= tuple(self.window_size):
+            self.add_widget(self.box)
+            self.old_size = Window.size
+            adapt_window((600,200))
+        else:
+            self.size = self.window_size
+
+    def add_content(self, content):
+        self.remove_widget(self.box)
+        self.box = content
+        self.on_content(None, self.box)
+        
+    def remove_content(self):
+        self.box.clear_widgets()
 
 class StandartPopup(Popup):
     message = StringProperty()
@@ -16,7 +44,7 @@ class StandartPopup(Popup):
         Popup.__init__(self, **kwargs)
         self.register_event_type('on_content_changed')
         self.message = message  
-        self.auto_dismiss = False
+        self.auto_dismiss = True
         self.b = BoxLayout(orientation = 'vertical')
         self.b.add_widget(Label(text = self.message))
         self.size = [550, 150]
@@ -25,8 +53,10 @@ class StandartPopup(Popup):
     def on_open(self):
         if Window.size <= tuple(self.size):
             self.add_widget(self.b)
-            self.old_size = Window.size
+            self.old_size = list(Window.size)
             adapt_window((600,200))
+        else:
+            self.size = self.window_size
             
     def on_content_changed(self):
         pass
@@ -39,11 +69,15 @@ class StandartPopup(Popup):
         
     def on_dismiss(self):
         if self.old_size == ():
+            print("Not changing")
             return
-        elif not isNewWindowBigger(self.old_size):
-            
+        elif isNewWindowBigger(tuple(self.old_size)):
+            print("Changing")
             adapt_window(self.old_size)
             self.old_size = ()
+        else:
+            print(tuple(self.old_size))
+            print(Window.size)
     
 
 class PopupMessage(StandartPopup):

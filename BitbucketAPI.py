@@ -1,7 +1,7 @@
 #!/usr/bin/kivy
 # -*- coding: utf-8 -*-
 
-from builtins import staticmethod
+from builtins import staticmethod, str
 from datetime import datetime
 import json
 import math
@@ -13,8 +13,24 @@ from sys import platform
 from requests.exceptions import ConnectTimeout, ConnectionError, ReadTimeout
 import os, sys
 
+def search_env(env):
+    envirement = str(env) if not isinstance(env, str) else env
+    try:
+        if 'win' in platform:
+                path = os.popen('where '+ envirement).readline()[:-1]
+        elif 'linux' in platform:
+            path = os.popen('which '+ envirement).readline()[:-1]
+            
+    except IndexError:
+        path = None
+        
+    if path is None:
+        return False
+    else:
+        return True
+
 app_path = os.path.abspath(os.path.dirname(sys.argv[0]))
-if 'win' in platform:
+if 'win' in platform:    
     file_route_spliter = '\\'
 else:
     file_route_spliter = '/'
@@ -33,8 +49,6 @@ userdatafolder = app_path + file_route_spliter + 'usr'
 userfile = userdatafolder + file_route_spliter + 'user.mlbu'
 password_separator = 'FF04'
 
-
-
 def prettify(elem):
     """Return a pretty-printed XML string for the Element.
     """
@@ -42,7 +56,7 @@ def prettify(elem):
     reparsed = minidom.parseString(rough_string)
     return reparsed.toprettyxml(indent="  ")
 
-class BitbucketRegularUser:
+class User:
     def __init__(self, kwargs= None):
         self.slug = u''
         self.id = u''
@@ -73,9 +87,9 @@ class BitbucketRegularUser:
 
 
  
-class BitbucketLogedUser(BitbucketRegularUser):                
+class LogedUser(User):                
     def __init__(self, **kwargs):
-        super(BitbucketLogedUser, self).__init__(kwargs)
+        super(LogedUser, self).__init__(kwargs)
         self.password = u''
         self.encoded_password = u''
         
@@ -84,7 +98,7 @@ class BitbucketLogedUser(BitbucketRegularUser):
         
         
     def __call__(self, **kwargs):
-        BitbucketRegularUser.__call__(self, **kwargs)
+        User.__call__(self, **kwargs)
         if 'password' in kwargs:
             self.password = kwargs['password']
             self.encode_password()
@@ -150,7 +164,7 @@ class BitbucketLogedUser(BitbucketRegularUser):
 
 
    
-class BitbucketProject:
+class Project:
     
     def __init__(self, kwargs = None):
         self.repositories = []
@@ -179,7 +193,7 @@ class BitbucketProject:
 
 
 
-class BitbucketBranch(object):
+class Branch(object):
     
     def __init__(self, kwargs):
         self.commits = []
@@ -207,13 +221,13 @@ class BitbucketBranch(object):
 
            
             
-class BitbucketCommit(object):
+class Commit(object):
     
     def __init__(self, kwargs):
         if kwargs is None: 
             self.id = ''
             self.displayId = ''
-            self.author = BitbucketRegularUser()
+            self.author = User()
             self.authorTimestamp = None
             self.message = ''
             self.parents = []
@@ -226,18 +240,18 @@ class BitbucketCommit(object):
         if 'displayId' in kwargs:
             self.displayId = kwargs['displayId']
         if 'author' in kwargs:
-            self.author = BitbucketRegularUser(kwargs['author'])
+            self.author = User(kwargs['author'])
         if 'authorTimestamp' in kwargs:
             self.authorTimestamp = kwargs['authorTimestamp']
         if 'message' in kwargs:
             self.message = kwargs['message']
         if 'parents' in kwargs:
-            self.parents = [BitbucketCommit(kwargs['parents'])]
+            self.parents = [Commit(kwargs['parents'])]
 
 
 
 
-class BitbucketRepo:
+class Repository:
     
     def __init__(self, kwargs = None):
         self.branches = []
@@ -247,7 +261,7 @@ class BitbucketRepo:
             self.name = u''
             self.scmId = u''
             self.forkable = False
-            self.project = BitbucketProject()
+            self.project = Project()
             self.public = False
             self.http_link = u''
             self.ssh_link = u''
@@ -269,7 +283,7 @@ class BitbucketRepo:
         if 'forkable' in kwargs:
             self.forkable = kwargs['forkable']
         if 'project' in kwargs:
-            self.project= BitbucketProject(kwargs['project'])
+            self.project= Project(kwargs['project'])
         if 'public' in kwargs:
             self.public = kwargs['public']
         if 'links' in kwargs:
@@ -291,7 +305,7 @@ class BitbucketRepo:
 class Bitbucket:
     
     def __init__(self):
-        self.user = BitbucketLogedUser()
+        self.user = LogedUser()
         self.has_access = False
         self.session = requests.Session()
         self.projects = []
@@ -357,7 +371,7 @@ class Bitbucket:
             rsp = self.Paged_response_parse(url)
             if 'values' in rsp:
                 for value in rsp['values']:
-                    branch = BitbucketBranch(value)
+                    branch = Branch(value)
                     commits_on_this_branch = self.get_repo_commits_on_branch(repo, branch)
                     branch.commits += commits_on_this_branch
                     repo.branches.append(branch)
@@ -368,7 +382,7 @@ class Bitbucket:
         requested_commits = []
         if 'values' in rsp:
             for value in rsp['values']:
-                requested_commits.append(BitbucketCommit(value))
+                requested_commits.append(Commit(value))
                 
             return requested_commits
         elif 'errors' in rsp:
@@ -380,7 +394,7 @@ class Bitbucket:
             rsp = self.Paged_response_parse(url)
             if 'values' in rsp:
                 for value in rsp['values']:
-                    project = BitbucketProject(value)
+                    project = Project(value)
                     project.repositories = self.Get_modules_repo(project.key)
                     self.projects.append(project)
                    
@@ -402,15 +416,24 @@ class Bitbucket:
             rsp = self.Paged_response_parse(url)
             if 'values' in rsp:
                 for value in rsp['values']:
-                    repo = BitbucketRepo(value)
+                    repo = Repository(value)
                     self.progress_string = "Load " + repo.name + " data"
                     self.get_repo_branches(repo)
                     repositories.append(repo)
                     
             return repositories
                     
-                           
-
+    @staticmethod
+    def clone_selected(selected_items):
+        if search_env('git') is True:
+            for item in selected_items:
+                print(item)
+            
+            
+            return {'success': 'The selected repositories are cloned to ...'}
+        else:
+            return {'error': 'You have no git installed on your computer.\nPlease install git and try again'}               
+    
 
 class SelectedRepoVersion(object):
     def __init__(self,repo, branch=None, commit=None,**kwargs):
@@ -424,11 +447,13 @@ class SelectedRepoVersion(object):
         elif branch is not None and commit is None:
             self.displayText = repo.name+'/'+branch.displayId
         elif branch is None and commit is None:
-            self.displayText = repo.name+'/master'
-            
+            self.displayText = repo.name+'/master'     
+       
             
     def __eq__(self, other):
         return self.repo is other.repo and self.branch is other.branch and self.commit is other.commit
     
     def __str__(self):
         return '%s' % self.displayText
+    
+    

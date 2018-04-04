@@ -8,8 +8,10 @@ from kivy.uix.treeview import TreeViewLabel, TreeView
 from kivy.core.window import Window
 from kivy.lang import Builder
 from sys import platform
-import BitbucketAPI as Bitbucket
+from BitbucketAPI import Bitbucket, SelectedRepoVersion, Repository, Branch, Commit
 from behaviors.windowbehavior import adapt_window
+from Popups import ContentPopup
+from prj_creator import ProjectCreator
 
 Builder.load_string("""
     
@@ -44,7 +46,13 @@ class ProjectsScreen(Screen):
         self.treeview = self.ids.scrolled_tree
         self.treeview.root_options=dict(text='MicroLab Projects')
                
-        self.selected_items_view = None              
+        self.selected_items_view = None
+
+        self.creator = ProjectCreator()
+        self.create_form = ContentPopup(title = "Create project")
+        self.creator.bind(on_cancel = self.cancel_creating)
+        self.creator.bind(on_submit = self.create_project)
+        self.create_form.add_content(self.creator)
         
         self.entered = False
         
@@ -80,8 +88,10 @@ class ProjectsScreen(Screen):
             menu = MenuBox()
             change_view_button = MenuButton(text = 'Go to\nMLP')
             change_view_button.bind(on_release = self.on_change_view)
-            clone_button = MenuButton(text = '  Clone\nselected')
-            clone_button.bind(on_release = self.clone_selected)
+            
+            clone_button = MenuButton(text = 'Create\nproject')
+            clone_button.bind(on_release = self.on_create_prj_button_release)
+            
             menu.add_button(change_view_button)
             menu.add_button(clone_button)
             self.ids.main_box.add_widget(menu)
@@ -98,31 +108,35 @@ class ProjectsScreen(Screen):
         
         branch = None
         commit = None
-        if isinstance(item, Bitbucket.BitbucketCommit):
+        if isinstance(item, Commit):
             commit = item
             branch = widget.parent_node.item
             repo = widget.parent_node.parent_node.item
-        elif isinstance(item, Bitbucket.BitbucketBranch):
+        elif isinstance(item, Branch):
             repo = widget.parent_node.item
             branch = item
             if branch.commits != []:
                 commit = branch.commits[0]
-        elif isinstance(item, Bitbucket.BitbucketRepo):
+        elif isinstance(item, Repository):
             repo = item
             if repo.branches != []:
                 branch = list(filter(lambda commit: commit.displayId == "master", repo.branches))[-1]
                 if branch.commits != []:
                     commit = branch.commits[0]
             
-        selected_item = Bitbucket.SelectedRepoVersion(repo, branch, commit)
+        selected_item = SelectedRepoVersion(repo, branch, commit)
         selected_item_text = selected_item.displayText.split('/')[0]
         tooltip_text = selected_item.displayText.replace(selected_item_text+'/', '')
         self.selected_items_view.dispatch('on_add_item', selected_item, selected_item_text, tooltip_text)
         
-    def clone_selected(self, button):
-        for item in self.selected_items_view.items:
-            print(item)
+    def on_create_prj_button_release(self, button):
+        #Bitbucket.on_create_prj_button_release(self.selected_items_view.items)
+        self.create_form.open()
     
-    
+    def cancel_creating(self, _):
+        self.create_form.dismiss()
+            
+    def create_project(self, _):
+        pass
     
         

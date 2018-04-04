@@ -16,9 +16,10 @@ from behaviors.menubehavior import MenuBox, MenuButton
 from sys import platform
 import re
 import time
-import BitbucketAPI as Bitbucket
+from BitbucketAPI import Bitbucket, SelectedRepoVersion, Repository, Branch, Commit
 from behaviors.windowbehavior import adapt_window
-
+from prj_creator import ProjectCreator
+from Popups import ContentPopup
 
 Builder.load_string("""
 #:import hex kivy.utils.get_color_from_hex
@@ -150,7 +151,11 @@ class RepoSelectorScreen(Screen):
         self.id = 'repo_selector_screen'
         self.tabs = list(reversed(self.ids.root_tabb.get_tab_list()))
         self.connection_session = session
-        
+        self.creator = ProjectCreator()
+        self.create_form = ContentPopup(title = "Create project")
+        self.creator.bind(on_cancel = self.cancel_creating)
+        self.creator.bind(on_submit = self.create_project)
+        self.create_form.add_content(self.creator)
         
         for key, value in list(filter(lambda tup: isinstance(tup[1], TreeView), self.ids.items())):
             value.bind(minimum_size=lambda w, size: w.setter('height')(w, size[1]))
@@ -218,19 +223,33 @@ class RepoSelectorScreen(Screen):
             menu = MenuBox()
             change_view_button = MenuButton(text = 'All projects')
             change_view_button.bind(on_release = self.on_change_view)
-            clone_button = MenuButton(text = '  Clone\nselected')
-            clone_button.bind(on_release = self.clone_selected)
+            
+            clone_button = MenuButton(text = 'Create\nproject')
+            
+            clone_button.bind(on_release = self.on_create_prj_button_release)
+            
+            
             menu.add_button(change_view_button)
             menu.add_button(clone_button)
             self.ids.main_box.add_widget(menu)
             
             self.entered = True
             
+            
+    def cancel_creating(self, _):
+        self.create_form.dismiss()
+            
+    def create_project(self, _):
+        pass
 
-    def clone_selected(self, button):
+    def on_create_prj_button_release(self, button):
+        all_items = []
         for view in self.selectedItemViews:
-            for item in view.items:
-                print(item)
+            all_items += view.items
+            
+        #Bitbucket.on_create_prj_button_release(all_items)
+        self.create_form.open()
+            
         
     def on_selectable_item_double_tap(self,object,widget,item):
         instance_to_dispatch = list(filter(lambda x: x.label_text == self.ids.root_tabb.current_tab.text,                                                                 
@@ -238,23 +257,23 @@ class RepoSelectorScreen(Screen):
         
         branch = None
         commit = None
-        if isinstance(item, Bitbucket.BitbucketCommit):
+        if isinstance(item, Commit):
             commit = item
             branch = widget.parent_node.item
             repo = widget.parent_node.parent_node.item
-        elif isinstance(item, Bitbucket.BitbucketBranch):
+        elif isinstance(item, Branch):
             repo = widget.parent_node.item
             branch = item
             if branch.commits != []:
                 commit = branch.commits[0]
-        elif isinstance(item, Bitbucket.BitbucketRepo):
+        elif isinstance(item, Repository):
             repo = item
             if repo.branches != []:
                 branch = list(filter(lambda commit: commit.displayId == "master", repo.branches))[-1]
                 if branch.commits != []:
                     commit = branch.commits[0]
             
-        selected_item = Bitbucket.SelectedRepoVersion(repo, branch, commit)
+        selected_item = SelectedRepoVersion(repo, branch, commit)
         selected_item_text = selected_item.displayText.split('/')[0]
         tooltip_text = selected_item.displayText.replace(selected_item_text+'/', '')
         instance_to_dispatch.dispatch('on_add_item', selected_item, selected_item_text, tooltip_text)

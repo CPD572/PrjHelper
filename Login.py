@@ -125,7 +125,7 @@ class LoginScreen(Screen):
                 self.thread.daemon = True
                 
                 
-                self.popup = Popups.StandartPopup(message = self.connection_session.progress_string)
+                self.popup = Popups.StandartPopup(title = 'Progress', message = self.connection_session.progress_string)
                 timing_event = Clock.schedule_interval(self.on_popup_content, .1)
                 
                 self.thread.start()
