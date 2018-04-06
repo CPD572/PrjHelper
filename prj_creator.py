@@ -21,7 +21,7 @@ Builder.load_string("""
     padding: 10
     spacing: 10
     project_name_input: prj_name_input
-    project_path_input: prj_path_input
+    workspace_path_input: prj_path_input
     size_hint: 1, 1
     
     BoxLayout:
@@ -69,14 +69,19 @@ Builder.load_string("""
 
 class ProjectCreator(BoxLayout):
     project_name = StringProperty()
-    project_path = StringProperty()
+    workspace_path = StringProperty()
     project_name_input = ObjectProperty()
-    project_path_input = ObjectProperty()
+    workspace_path_input = ObjectProperty()
     
     def __init__(self):
         super(ProjectCreator, self).__init__()
         self.register_event_type('on_submit')
         self.register_event_type('on_cancel')
+        sys_home = os.getenv("HOMEPATH") if "win32" in sys.platform else os.getenv("HOME")
+        temp_path = os.path.abspath(sys_home+"/workspace")
+        if os.path.exists(temp_path):
+            self.workspace_path_input.text = temp_path
+            self.workspace_path = temp_path
         
     def on_submit(self):
         print("Submit")
@@ -85,10 +90,10 @@ class ProjectCreator(BoxLayout):
         print("Cancel")
         
     def Browse(self):
-        prev_dir = self.project_path
+        prev_dir = self.workspace_path
         path = filedialog.askdirectory()
         print(path)
         if path == '':
             path = prev_dir
-        self.project_path = os.path.abspath(path)
-        self.project_path_input.text = self.project_path
+        self.workspace_path = os.path.abspath(path)
+        self.workspace_path_input.text = self.workspace_path
