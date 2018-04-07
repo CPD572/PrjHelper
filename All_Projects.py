@@ -136,7 +136,7 @@ class ProjectsScreen(Screen):
     def cancel_creating(self, _):
         self.create_form.dismiss()
             
-    def create_project(self, _):
-        pass
+    def create_project(self, project):
+        self.create_form.dismiss()
     
         

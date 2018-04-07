@@ -4,6 +4,7 @@
 import os, sys
 from Popups import ContentPopup
 from tkinter import filedialog, Tk
+from tkinter.messagebox import showerror, showinfo
 from kivy.properties import StringProperty, ObjectProperty
 from kivy.uix.textinput import TextInput
 from kivy.uix.boxlayout import BoxLayout
@@ -58,11 +59,11 @@ Builder.load_string("""
         CustomButton:
             id: submit_button
             text: "Submit"
-            on_release: root.dispatch('on_submit')
+            on_release: root.Submit()
         CustomButton:
             id: cancel_button
             text: "Cancel"
-            on_release: root.dispatch('on_cancel')
+            on_release: root.Cancel()
         
 """)
 
@@ -77,17 +78,51 @@ class ProjectCreator(BoxLayout):
         super(ProjectCreator, self).__init__()
         self.register_event_type('on_submit')
         self.register_event_type('on_cancel')
+        self.default_workspace_path = ''
         sys_home = os.getenv("HOMEPATH") if "win32" in sys.platform else os.getenv("HOME")
+        self.project_path = ''
         temp_path = os.path.abspath(sys_home+"/workspace")
         if os.path.exists(temp_path):
-            self.workspace_path_input.text = temp_path
-            self.workspace_path = temp_path
-        
+            self.default_workspace_path = temp_path
+            self.workspace_path_input.text = self.default_workspace_path
+            
     def on_submit(self):
-        print("Submit")
+        pass
     
     def on_cancel(self):
-        print("Cancel")
+        pass
+        
+    def Submit(self):
+        if self.workspace_path_input.text == "" or self.workspace_path_input.text == None:
+            showerror(title = "Workspace problem", message = "Please select workspace")
+            return
+        if self.project_name_input.text == "" or self.project_name_input.text == None:
+            showerror(title = "Project name problem", message = "Please enter the project name")
+            return
+        
+        self.project_name = self.project_name_input.text
+        self.workspace_path = self.workspace_path_input.text
+        
+        if os.path.exists(os.path.abspath(self.workspace_path)):
+            prj_path = os.path.join(self.workspace_path, self.project_name)
+            if os.path.exists(prj_path):
+                showerror(title = "Project name problem", message = "Project "+self.project_name+" already exist")
+                return
+            else:
+                os.mkdir(prj_path)
+                self.is_created = True
+                self.project_path = prj_path
+                self.dispatch('on_submit')
+                return
+        else:
+            showerror(title = "Project name problem", message = "There is no such workspace")
+            return                                                                            
+            
+    
+    def Cancel(self):
+        self.workspace_path_input.text = self.default_workspace_path
+        self.project_name_input.text = ''
+        self.dispatch('on_cancel')
         
     def Browse(self):
         prev_dir = self.workspace_path

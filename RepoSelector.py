@@ -14,7 +14,7 @@ from kivy.properties import StringProperty, NumericProperty
 from behaviors.selectablebehavior import SelectedItem, SelectedItemsView, TreeViewSelectableItem
 from behaviors.menubehavior import MenuBox, MenuButton
 from sys import platform
-import re
+import re, os
 import time
 from BitbucketAPI import Bitbucket, SelectedRepoVersion, Repository, Branch, Commit
 from behaviors.windowbehavior import adapt_window
@@ -239,15 +239,18 @@ class RepoSelectorScreen(Screen):
     def cancel_creating(self, _):
         self.create_form.dismiss()
             
-    def create_project(self, _):
-        pass
+    def create_project(self, project):
+            
+        for layer in self.selectedItemViews:
+            os.mkdir(os.path.join(project.project_path, layer.label_text))
+        
+        self.create_form.dismiss()
 
     def on_create_prj_button_release(self, button):
-        all_items = []
-        for view in self.selectedItemViews:
-            all_items += view.items
+        #all_items = []
+        #for view in self.selectedItemViews:
+        #    all_items += view.items
             
-        #Bitbucket.on_create_prj_button_release(all_items)
         self.create_form.open()
             
         

@@ -15,7 +15,7 @@ class ContentPopup(Popup):
     
     def __init__(self, content_orientation = 'vertical', **kwargs):
         super(ContentPopup, self).__init__(**kwargs)
-        self.box = BoxLayout(orientation = content_orientation)
+        self.content = BoxLayout(orientation = content_orientation)
         self.auto_dismiss = True
         self.window_size = [600,200]
         self.old_size = ()
@@ -23,19 +23,19 @@ class ContentPopup(Popup):
 
     def on_open(self):
         if Window.size <= tuple(self.window_size):
-            self.add_widget(self.box)
+            self.add_widget(self.content)
             self.old_size = Window.size
             adapt_window((600,200))
         else:
             self.size = self.window_size
 
     def add_content(self, content):
-        self.remove_widget(self.box)
-        self.box = content
-        self.on_content(None, self.box)
+        self.remove_widget(self.content)
+        self.content = content
+        self.on_content(None, self.content)
         
     def remove_content(self):
-        self.box.clear_widgets()
+        self.content.clear_widgets()
 
 class StandartPopup(Popup):
     message = StringProperty()
@@ -69,10 +69,8 @@ class StandartPopup(Popup):
         
     def on_dismiss(self):
         if self.old_size == ():
-            print("Not changing")
             return
         elif isNewWindowBigger(tuple(self.old_size)):
-            print("Changing")
             adapt_window(self.old_size)
             self.old_size = ()
         else:
