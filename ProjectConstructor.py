@@ -9,6 +9,7 @@ from RepoSelector import RepoSelectorScreen
 from kivy.app import App
 from kivy.config import Config
 from kivy.uix.screenmanager import ScreenManager
+from MLProject import MicroLabPlatform
 
 
 class ProjectConstructorApp(App):
@@ -18,7 +19,7 @@ class ProjectConstructorApp(App):
         Config.set('graphics', 'resizable', 'False')
         Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
         Config.write()
-        self.session = Bitbucket()
+        self.session = MicroLabPlatform()
         manager = ScreenManager()
         
         #adding screens to application

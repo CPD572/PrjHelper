@@ -14,7 +14,7 @@ root = Tk()
 root.withdraw()
 
 Builder.load_string("""
-<CustomButton@Button>:
+<FormButton@Button>:
     font_size: 14
 
 <ProjectCreator>:
@@ -45,7 +45,7 @@ Builder.load_string("""
             multiline: False
             write_tab: False
             size_hint: 1, 1
-        CustomButton:
+        FormButton:
             text: 'Browse for\\nworkspace'
             on_press: root.Browse()
             size_hint: None, 1
@@ -56,11 +56,11 @@ Builder.load_string("""
         width: 200
         height: "30dp"
         spacing: 10
-        CustomButton:
+        FormButton:
             id: submit_button
             text: "Submit"
             on_release: root.Submit()
-        CustomButton:
+        FormButton:
             id: cancel_button
             text: "Cancel"
             on_release: root.Cancel()

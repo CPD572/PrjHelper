@@ -16,12 +16,7 @@ import re
 import os, sys
 
 app_path = os.path.abspath(os.path.dirname(sys.argv[0]))
-if 'win' in platform:
-    file_route_spliter = '\\'
-else:
-    file_route_spliter = '/'
     
-
 Builder.load_string("""
 #:import hex kivy.utils.get_color_from_hex
 
@@ -86,8 +81,8 @@ class ToolTip(Label):
     pass
 
 class HoverButton(Button, HoverBehavior):                        
-    active_img = app_path+ file_route_spliter + 'img'+file_route_spliter+'close_active.png'     
-    inactive_img = app_path + file_route_spliter +'img'+file_route_spliter+'close_inactive.png' 
+    active_img = os.path.abspath(app_path + '/img/close_active.png')    
+    inactive_img = os.path.abspath(app_path + '/img/close_inactive.png')
 
 class SelectedItemLabel(Label, HoverBehavior):
     

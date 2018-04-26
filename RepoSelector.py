@@ -191,7 +191,6 @@ class RepoSelectorScreen(Screen):
         Screen.on_pre_enter(self, *args)
         adapt_window((1600,400))
         if self.connection_session != None and self.entered == False:
-                
             mlp_project=list(filter(lambda project: project.key == 'MLP', self.connection_session.projects))[-1]
             
             for item in list(self.repositories.keys()):
