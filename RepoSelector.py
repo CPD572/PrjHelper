@@ -20,6 +20,7 @@ from BitbucketAPI import Bitbucket, SelectedRepoVersion, Repository, Branch, Com
 from behaviors.windowbehavior import adapt_window
 from prj_creator import ProjectCreator
 from Popups import ContentPopup
+from kivy.config import Config
 
 Builder.load_string("""
 #:import hex kivy.utils.get_color_from_hex
@@ -32,8 +33,8 @@ Builder.load_string("""
         
         BoxLayout:
             orientation: 'vertical'
-            size_hint_x: None
-            width: 585
+            size_hint_x: 1
+            #width: 585
             id: selected_view
             
             TabbedPanel:
@@ -130,10 +131,11 @@ Builder.load_string("""
                             size_hint_y: None
                             
                             
-        BoxLayout:
-            orientation: 'horizontal'
-            id: selected_items_lists
-            spacing: 5
+#        BoxLayout:
+#            orientation: 'horizontal'
+#            id: selected_items_lists
+#            size_hint_x: 1
+#            spacing: 5
 #            canvas:
 #                Color:
 #                    rgba: 1, 0, 0, 1
@@ -195,7 +197,12 @@ class RepoSelectorScreen(Screen):
             
             for item in list(self.repositories.keys()):
                 for regEx in self.RegEx[item]:
-                    self.repositories[item] += list(filter(lambda repo: re.match(regEx, repo.name) and not re.match("((\w|\W)+_demo|(\w|\W)+_test)", repo.name), mlp_project.repositories))
+                    self.repositories[item] += list(
+                        filter(
+                            lambda repo: re.match(regEx, repo.name) and not re.match("((\w|\W)+_demo|(\w|\W)+_test)", repo.name), 
+                            mlp_project.repositories
+                            )
+                                                    )
             
             
             for id in self.tree_data_ids_list:
@@ -209,14 +216,11 @@ class RepoSelectorScreen(Screen):
                         selectableBranch = TreeViewSelectableItem(item = branch, text = branch.displayId)
                         selectableBranch.bind(on_double_tap = self.on_selectable_item_double_tap)
                         tree_view.add_node(selectableBranch, selectableRepo)
-                        for commit in branch.commits:
-                            selectableCommit = TreeViewSelectableItem(item = commit, text = commit.message)
-                            selectableCommit.bind(on_double_tap = self.on_selectable_item_double_tap)
-                            tree_view.add_node(selectableCommit, selectableBranch)
+                        
                    
             for tabb in self.tabs:
-                selected = SelectedItemsView(label_text = tabb.text)
-                self.ids.selected_items_lists.add_widget(selected)
+                selected = SelectedItemsView(label_text=tabb.text, width='250dp')
+                self.ids.main_box.add_widget(selected)
                 self.selectedItemViews.append(selected)
                     
             menu = MenuBox()
@@ -245,17 +249,13 @@ class RepoSelectorScreen(Screen):
         
         self.create_form.dismiss()
 
-    def on_create_prj_button_release(self, button):
-        #all_items = []
-        #for view in self.selectedItemViews:
-        #    all_items += view.items
-            
+    def on_create_prj_button_release(self, button):   
         self.create_form.open()
             
         
     def on_selectable_item_double_tap(self,object,widget,item):
         instance_to_dispatch = list(filter(lambda x: x.label_text == self.ids.root_tabb.current_tab.text,                                                                 
-                                   list(filter(lambda n: isinstance(n, SelectedItemsView),self.ids.selected_items_lists.children))))[-1]
+                                   self.selectedItemViews))[-1]
         
         branch = None
         commit = None

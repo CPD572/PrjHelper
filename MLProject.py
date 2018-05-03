@@ -132,9 +132,7 @@ class MicroLabPlatform(Bitbucket):
                                 layer_structure(module= modules.attrib['group']+"/"+repo.attrib['name'])
 
                     
-                    print(layer_structure.modules)
-                    
-                #print(self.architecture)
+                    print("\n"+str(layer_structure)+":\n"+str(layer_structure.modules))
                     
         except Exception as e:
             print(str(e))

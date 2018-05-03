@@ -164,7 +164,6 @@ class LoginScreen(Screen):
         self.left_top_cord = (Window.left, Window.top)
         
     def on_enter(self, *args):
-        Config.set('graphics', 'resizable', 'False')
         Screen.on_enter(self, *args)
         if self.autologin == True and self.loged_in == False:
             self.ids.submit_button.trigger_action()

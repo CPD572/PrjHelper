@@ -53,7 +53,7 @@ Builder.load_string("""
 <SelectedItemsView>:
     spacing: 6
     orientation: 'vertical'
-    size_hint: [1,1]
+    size_hint: [None,1]
     Label:
         size_hint: [1, None]
         height: root.label_height
@@ -88,11 +88,11 @@ class SelectedItemLabel(Label, HoverBehavior):
     
     def __init__(self, text, tooltip_text, **kwargs):
         self.text = text
-        self.tooltip = ToolTip()
-        self.tooltip.text = tooltip_text
+        self.bind(on_touch_down = self.on_click)
+        self.tooltip = ToolTip(text = tooltip_text)
         self.disabled_color = [1,1,1,1]
         capital_letters_number = len(re.findall('([A-Z])', text))
-        self.item_name_len = (capital_letters_number+1)*8 + (len(text)-capital_letters_number)*7.5
+        self.item_name_len = ((capital_letters_number+1)*8)+2 + (len(text)-capital_letters_number)*7
         super(SelectedItemLabel, self).__init__(**kwargs)
     
     def on_enter(self, pos):
@@ -101,6 +101,10 @@ class SelectedItemLabel(Label, HoverBehavior):
         
     def on_leave(self, pos):
         Window.remove_widget(self.tooltip)
+        
+    def on_click(self, instance, touch):
+        if touch.button == "right":
+            pass
    
 class SelectedItem(BoxLayout):
     def __init__(self, text, tooltip_text, **kwargs):
@@ -110,7 +114,7 @@ class SelectedItem(BoxLayout):
         self.button = HoverButton()
         self.button.bind(on_release = self.on_delete)
         self.add_widget(self.button)
-        self.size = (self.label.item_name_len+self.button.size[0]+2, self.button.size[1]+2)
+        self.size = (self.label.item_name_len+self.button.size[0]+2, self.button.size[1]+5)
     
     def on_delete(self, button):
         self.parent.parent.parent.dispatch('on_delete_item', self)
@@ -130,12 +134,15 @@ class SelectedItemsView(BoxLayout):
         self.items = list()
         self.widgets = list()
         self.selectedItem_height = Window.size[1] - self.label_height - self.spacing
-        self.stack.bind(minimum_size=lambda w, size: w.setter('height')(w, (size[1] if size[1] > self.selectedItem_height else self.selectedItem_height)))
+        self.stack.bind(minimum_size=lambda w, size: w.setter('height')(w, size[1] if size[1] > self.selectedItem_height else self.selectedItem_height))
         
     def on_add_item(self, item, item_text, tooltip_text):
         if list(filter(lambda widget: widget.label.text == item_text, self.widgets)) == []:
             self.items.append(item)
             new_widget = SelectedItem(text = item_text, tooltip_text=tooltip_text)
+            if (new_widget.label.item_name_len + new_widget.button.size[0]+2) > self.width:
+                new_widget.size = (self.width - 2*self.spacing, 2*new_widget.size[1])
+                new_widget.label.text = new_widget.label.text[:int((len(new_widget.label.text)+1)/2)] + '\n' + new_widget.label.text[int((len(new_widget.label.text)+1)/2):]
             self.widgets.append(new_widget)
             self.stack.add_widget(new_widget)
             
@@ -143,6 +150,9 @@ class SelectedItemsView(BoxLayout):
             pass
         
     def on_delete_item(self, widget):
+        if '\n' in widget.label.text:
+            a = widget.label.text.split("\n")
+            widget.label.text = ''.join(a)
         item_filtered = list(filter(lambda x: widget.label.text in x.displayText, self.items))
         if len(item_filtered) != 1:
             return
@@ -151,8 +161,8 @@ class SelectedItemsView(BoxLayout):
         self.widgets.remove(widget)
         self.stack.remove_widget(widget)
         
-    #def on_size(self):
-        
+    def on_size(self, a, b):
+        self.selectedItem_height = Window.size[1] - self.label_height - self.spacing
 
     
 class TreeViewSelectableItem(TreeViewLabel):

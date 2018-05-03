@@ -16,15 +16,13 @@ class ProjectConstructorApp(App):
 
     def build(self):
         
-        Config.set('graphics', 'resizable', 'False')
         Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
         Config.write()
         self.session = MicroLabPlatform()
         manager = ScreenManager()
         
         #adding screens to application
-        login_screen = LoginScreen(name = 'Login', session = self.session)
-        manager.add_widget(login_screen)
+        manager.add_widget(LoginScreen(name = 'Login', session = self.session))
         manager.add_widget(RepoSelectorScreen(name = 'RepoSelector', session = self.session))
         manager.add_widget(ProjectsScreen(name = 'ProjectSelector', session = self.session))
 

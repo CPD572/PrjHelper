@@ -21,6 +21,7 @@ Builder.load_string("""
     BoxLayout:
         orientation: 'horizontal'
         id: main_box
+        size_hint_x: 1
         spacing: 5
         canvas:
             Color:
@@ -60,7 +61,7 @@ class ProjectsScreen(Screen):
         Screen.on_pre_enter(self, *args)
         
         if self.connection_session != None and self.entered == False:
-            self.selected_items_view = SelectedItemsView(label_text = 'Selected projects and repositories')
+            self.selected_items_view = SelectedItemsView(label_text = 'Selected projects and repositories', width=350)
             self.ids.main_box.add_widget(self.selected_items_view)
             
             for project in self.connection_session.projects:
@@ -77,11 +78,7 @@ class ProjectsScreen(Screen):
                             selectableBranch = TreeViewSelectableItem(item = branch, text = branch.displayId)
                             selectableBranch.bind(on_double_tap = self.on_selectable_item_double_tap)
                             self.treeview.add_node(selectableBranch, selectableRepo)
-                            
-                            for commit in branch.commits:
-                                selectableCommit = TreeViewSelectableItem(item = commit, text = commit.message)
-                                selectableCommit.bind(on_double_tap = self.on_selectable_item_double_tap)
-                                self.treeview.add_node(selectableCommit, selectableBranch)
+                           
                         
             self.entered = True
             
