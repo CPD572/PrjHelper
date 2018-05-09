@@ -151,8 +151,7 @@ class SelectedItemsView(BoxLayout):
         
     def on_delete_item(self, widget):
         if '\n' in widget.label.text:
-            a = widget.label.text.split("\n")
-            widget.label.text = ''.join(a)
+            widget.label.text = widget.label.text.replace("\n", "")
         item_filtered = list(filter(lambda x: widget.label.text in x.displayText, self.items))
         if len(item_filtered) != 1:
             return

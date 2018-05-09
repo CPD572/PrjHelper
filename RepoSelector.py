@@ -34,7 +34,6 @@ Builder.load_string("""
         BoxLayout:
             orientation: 'vertical'
             size_hint_x: 1
-            #width: 585
             id: selected_view
             
             TabbedPanel:
@@ -130,18 +129,6 @@ Builder.load_string("""
                             id: lib_tree_view
                             size_hint_y: None
                             
-                            
-#        BoxLayout:
-#            orientation: 'horizontal'
-#            id: selected_items_lists
-#            size_hint_x: 1
-#            spacing: 5
-#            canvas:
-#                Color:
-#                    rgba: 1, 0, 0, 1
-#                Rectangle:
-#                    size: self.size
-#                    pos: self.pos
 """)
 
      
@@ -219,7 +206,7 @@ class RepoSelectorScreen(Screen):
                         
                    
             for tabb in self.tabs:
-                selected = SelectedItemsView(label_text=tabb.text, width='250dp')
+                selected = SelectedItemsView(label_text=tabb.text, width='180dp')
                 self.ids.main_box.add_widget(selected)
                 self.selectedItemViews.append(selected)
                     

@@ -97,7 +97,13 @@ class MicroLabPlatform(Bitbucket):
                     print("sho?")
             else:
                 os.chdir("00_platform_modules")
-                subprocess.call(["git","fetch"])
+                if sys.platform is "linux":
+                    import pexpect
+                    if not "credential.helper" in os.popen("git config -l").readlines():
+                        os.system("git config credential.helper cache --timeout=86400")
+                    pexpect.run("git fetch", events={"Password for ":self.user.password})
+                else:
+                    subprocess.call(["git","fetch"])
                 responses = os.popen("git status").readlines()
                 if "Your branch is up-to-date with 'origin/master'.\n" in responses:
                     lastVersion = True
