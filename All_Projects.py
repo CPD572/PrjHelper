@@ -50,6 +50,9 @@ class ProjectsScreen(Screen):
         self.treeview.root_options=dict(text='MicroLab Projects')
                
         self.selected_items_view = None
+        
+        self.window_size = (800,400)
+        self.old_size = self.window_size
 
         self.creator = ProjectCreator()
         self.create_form = ContentPopup(title = "Create project")
@@ -97,7 +100,11 @@ class ProjectsScreen(Screen):
             
     def on_enter(self, *args):
         Screen.on_enter(self, *args)
-        adapt_window(((len(self.connection_session.projects)+4)*100,400))
+        adapt_window(self.old_size if self.old_size > self.window_size else self.window_size)
+        
+    def on_pre_leave(self, *args):
+        Screen.on_pre_leave(self, *args)
+        self.old_size = Window.size
         
     def on_change_view(self, button):
         self.manager.transition.duration = 0                                                                                     

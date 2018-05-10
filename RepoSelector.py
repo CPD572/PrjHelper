@@ -23,11 +23,12 @@ Builder.load_string("""
     BoxLayout:
         orientation: 'horizontal'
         id: main_box
+        size_hint: [1, 1]
         spacing: 5
         
         BoxLayout:
             orientation: 'vertical'
-            size_hint_x: 1
+            size_hint: [1, 1]
             id: selected_view
             
             TabbedPanel:
@@ -80,10 +81,10 @@ class RepoSelectorScreen(Screen):
             for layer in self.connection_session.architecture:
                 tab = Tab(str(layer))
                 if layer.hasSublayers:
-                    subTabbedPanel = TabbedPanel(do_default_tab=False, tab_height=30)
+                    subTabbedPanel = TabbedPanel(do_default_tab=False, tab_height=25)
                     for subLayerName, functionalSubLayers in layer.modules.items():
                         subTab = Tab(subLayerName)
-                        nestedTabbedPanel = TabbedPanel(do_default_tab=False, tab_height=30)
+                        nestedTabbedPanel = TabbedPanel(do_default_tab=False, tab_height=25)
                         for functionalSubLayer in functionalSubLayers.keys():
                             functionalSubTab = Tab(functionalSubLayer)
                             for name in functionalSubLayers[functionalSubLayer]:
@@ -118,15 +119,14 @@ class RepoSelectorScreen(Screen):
                 
             self.tabs = list(reversed(self.ids.root_tabb.get_tab_list())) 
                
-            stack = BoxLayout(orientation='horizontal', spacing=5, padding=5, size_hint_x=None)
-            stack.bind(minimum_width=stack.setter('width'))
+            box = BoxLayout(orientation='horizontal', spacing=5, padding=5, size_hint_x=None) 
+            box.bind(minimum_width=box.setter('width'))
             for tabb in self.tabs:
                 selected = SelectedItemsView(label_text=tabb.text, width='180dp')
-                stack.add_widget(selected)
+                box.add_widget(selected)
                 self.selectedItemViews.append(selected)
-                
-            srolable = ScrollView(bar_width='9dp',do_scroll_x=True, do_scroll_y=False)  
-            srolable.add_widget(stack)
+            srolable = ScrollView(bar_width='9dp',do_scroll_x=True, do_scroll_y=False)
+            srolable.add_widget(box)
             self.ids.selected_view.add_widget(srolable)
                     
             menu = MenuBox()

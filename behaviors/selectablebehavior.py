@@ -119,6 +119,7 @@ class SelectedItem(BoxLayout):
     
     def on_delete(self, button):
         self.parent.parent.parent.dispatch('on_delete_item', self)
+        Window.remove_widget(self.label.tooltip)
     
 class SelectedItemsView(BoxLayout):
     
@@ -134,7 +135,7 @@ class SelectedItemsView(BoxLayout):
         self.stack = self.ids.stack
         self.items = list()
         self.widgets = list()
-        self.selectedItem_height = Window.size[1] - self.label_height - self.spacing
+        self.selectedItem_height = self.size[1] - self.label_height - self.spacing
         self.stack.bind(minimum_size=lambda w, size: w.setter('height')(w, size[1] if size[1] > self.selectedItem_height else self.selectedItem_height))
         
     def on_add_item(self, item, item_text, tooltip_text):
@@ -162,7 +163,7 @@ class SelectedItemsView(BoxLayout):
         self.stack.remove_widget(widget)
         
     def on_size(self, a, b):
-        self.selectedItem_height = Window.size[1] - self.label_height - self.spacing
+        self.selectedItem_height = self.size[1] - self.label_height - self.spacing
 
     
 class TreeViewSelectableItem(TreeViewLabel):
