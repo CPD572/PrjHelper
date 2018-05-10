@@ -92,7 +92,8 @@ class SelectedItemLabel(Label, HoverBehavior):
         self.tooltip = ToolTip(text = tooltip_text)
         self.disabled_color = [1,1,1,1]
         capital_letters_number = len(re.findall('([A-Z])', text))
-        self.item_name_len = ((capital_letters_number+1)*8)+2 + (len(text)-capital_letters_number)*7
+        numbers = len(re.findall('([0-9])', text))
+        self.item_name_len = (capital_letters_number*11)+1 + (numbers*11)+1 + ((len(text)-numbers-capital_letters_number)*7)+1
         super(SelectedItemLabel, self).__init__(**kwargs)
     
     def on_enter(self, pos):

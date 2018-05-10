@@ -40,7 +40,8 @@ class SoftwareLayer(object):
                 for group_name in kwargs["modules"]:
                     self.modules.update({group_name: {}})
             else:
-                self.modules.update({kwargs["modules"]: {}})
+                if self.hasSublayers:
+                    self.modules.update({kwargs["modules"]: {}})
                     
         if "sublayer" in kwargs:
             if self.hasSublayers is False:
@@ -54,7 +55,7 @@ class SoftwareLayer(object):
         if "module" in kwargs:
             splited = kwargs["module"].split('/')
             if self.hasSublayers is False:
-                self.modules[splited[0]].update({splited[1]:[]})
+                self.modules.update({splited[1]:[]})
             else:
                 self.modules[splited[0]][splited[1]].update({splited[2]:[]})
             
@@ -77,75 +78,73 @@ class MicroLabPlatform(Bitbucket):
         self.progress_string = "Load architecture data"
         self.Get_Architecture()
         self.progress_string = "Finished" 
-        
+               
         
     def Get_Architecture(self):
         lastVersion = False
-        try:
-            if not os.path.exists(os.path.abspath(app_path+"/00_platform_modules")) \
-            or not os.path.exists(os.path.abspath(app_path+"/00_platform_modules/Architecture.mlparch")):
-                url = bitbucket_api_link+"projects/MLP/repos/00_platform_modules"
-                rsp = self.parse_response(url)
-                if not "errors" in rsp:
-                    repo = self.Get_repository_by_response(rsp)
-                    subprocess.call(["git","clone",repo.http_link])
-                    
-                    lastVersion = True
-                    
-                else:
-                    print(rsp)
-                    print("sho?")
+        
+        if not os.path.exists(os.path.abspath(app_path+"/00_platform_modules")) \
+        or not os.path.exists(os.path.abspath(app_path+"/00_platform_modules/Architecture.mlparch")):
+            url = bitbucket_api_link+"projects/MLP/repos/00_platform_modules"
+            rsp = self.parse_response(url)
+            if not "errors" in rsp:
+                repo = self.Get_repository_by_response(rsp)
+                subprocess.call(["git","clone",repo.http_link])
+                
+                lastVersion = True
+                
             else:
-                os.chdir("00_platform_modules")
-                if sys.platform is "linux":
-                    import pexpect
-                    if not "credential.helper" in os.popen("git config -l").readlines():
-                        os.system("git config credential.helper cache --timeout=86400")
-                    pexpect.run("git fetch", events={"Password for ":self.user.password})
-                else:
-                    subprocess.call(["git","fetch"])
-                responses = os.popen("git status").readlines()
-                if "Your branch is up-to-date with 'origin/master'.\n" in responses:
-                    lastVersion = True
-                    os.chdir("..")
-                else:
-                    subprocess.call(["git","pull"])
-                    lastVersion = True
-                    
-            if lastVersion is True:
-                self.architecture = []
-                
-                mlp = ElementTree.parse(os.path.abspath("00_platform_modules/Architecture.mlparch" if not "00_platform_modules" in os.getcwd() \
-                                                        else "Architecture.mlparch")).getroot()
-                unsorted_layers = [SoftwareLayer(layer.attrib['name'], level = int(layer.attrib['level'])) for layer in mlp.findall(".//layer")]
-                self.architecture.extend(sorted(unsorted_layers, key=lambda layer: layer.level))
-                
-                for layer_structure in self.architecture:
-                    layer = mlp.find(".//*[@name=\""+str(layer_structure)+"\"]")
-                    if "sublayers" in layer.attrib:
-                        layer_structure(hasSublayers = eval(layer.attrib["sublayers"]))
-                        
-                    
-                    for modules in layer:
-                        layer_structure(modules= modules.attrib['group'] )
-                        if layer_structure.hasSublayers:
-                            for sublayer in modules:
-                                layer_structure(sublayer= modules.attrib['group']+"/"+sublayer.attrib['functionality'])
-                                for repo in sublayer:                                                        
-                                    layer_structure(module= modules.attrib['group']+"/"+sublayer.attrib['functionality']+"/"+repo.attrib['name'])
-                        else:
-                            for repo in modules:
-                                layer_structure(module= modules.attrib['group']+"/"+repo.attrib['name'])
-
-                    
-                    print("\n"+str(layer_structure)+":\n"+str(layer_structure.modules))
-                    
-        except Exception as e:
-            print(str(e))
-            print("Exception")
-                    
-        finally:
-            if "00_platform_modules" in os.getcwd():
+                print(rsp)
+                print("sho?")
+        else:
+            os.chdir("00_platform_modules")
+            if sys.platform is "linux":
+                import pexpect
+                if not "credential.helper" in os.popen("git config -l").readlines():
+                    os.system("git config credential.helper cache --timeout=86400")
+                pexpect.run("git fetch", events={"Password for ":self.user.password})
+            else:
+                subprocess.call(["git","fetch"])
+            responses = os.popen("git status").readlines()
+            if "Your branch is up-to-date with 'origin/master'.\n" in responses:
+                lastVersion = True
                 os.chdir("..")
+            else:
+                subprocess.call(["git","pull"])
+                lastVersion = True
+                
+        if lastVersion is True:
+            self.architecture = []
             
+            mlp = ElementTree.parse(os.path.abspath("00_platform_modules/Architecture.mlparch" if not "00_platform_modules" in os.getcwd() \
+                                                    else "Architecture.mlparch")).getroot()
+            unsorted_layers = [SoftwareLayer(layer.attrib['name'], level = int(layer.attrib['level'])) for layer in mlp.findall(".//layer")]
+            self.architecture.extend(sorted(unsorted_layers, key=lambda layer: layer.level))
+            
+            for layer_structure in self.architecture:
+                layer = mlp.find(".//*[@name=\""+str(layer_structure)+"\"]")
+                if "sublayers" in layer.attrib:
+                    layer_structure(hasSublayers = eval(layer.attrib["sublayers"]))
+                    
+                
+                for modules in layer:
+                    layer_structure(modules= modules.attrib['group'] )
+                    if layer_structure.hasSublayers:
+                        for sublayer in modules:
+                            layer_structure(sublayer= modules.attrib['group']+"/"+sublayer.attrib['functionality'])
+                            for repo in sublayer:                                                        
+                                layer_structure(module= modules.attrib['group']+"/"+sublayer.attrib['functionality']+"/"+repo.attrib['name'])
+                    else:
+                        for repo in modules:
+                            layer_structure(module= modules.attrib['group']+"/"+repo.attrib['name'])
+
+                
+                #print("\n"+str(layer_structure)+":\n"+str(layer_structure.modules))
+                    
+        
+                    
+        #finally:
+        #    if "00_platform_modules" in os.getcwd():
+        #        os.chdir("..")
+        #    
         

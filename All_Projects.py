@@ -31,9 +31,11 @@ Builder.load_string("""
                 pos: self.pos
         ScrollView:
             bar_width: '9dp'
+            size_hint_y: 1
             TreeView:
                 id: scrolled_tree
                 size_hint_y: None
+                
 """)
 
 class ProjectsScreen(Screen):

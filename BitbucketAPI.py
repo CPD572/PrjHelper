@@ -181,7 +181,8 @@ class Project:
         if 'links' in kwargs:
             self.link = kwargs['links']['self'][0]['href']
 
-
+    def __eq__(self, projectKey):
+        return self.key == projectKey
 
 
 
@@ -291,6 +292,8 @@ class Repository:
         if 'branches' in kwargs:
             self.branches = kwargs['branches']
 
+    def __eq__(self, repoName):
+        return self.name == repoName
 
 
 
@@ -387,6 +390,27 @@ class Bitbucket:
             return requested_commits
         elif 'errors' in rsp:
             return []
+        
+    def GetProjectByKey(self, key):
+        if isinstance(key, str):
+            return self.projects[self.projects.index(key)]
+        else:
+            return self.projects[self.projects.index(str(key))]
+        
+    def GetRepositoryByName(self, project, repoName):
+        if isinstance(project, Project):
+            if isinstance(repoName, str): 
+                return project.repositories[project.repositories.index(repoName)]
+            else:
+                return prj.repositories[self.prj.repositories.index(str(repoName))]  
+        else:
+            prj = self.GetProjectByKey(project)
+            
+        if isinstance(repoName, str):
+            return prj.repositories[prj.repositories.index(repoName)]
+        else:
+            return prj.repositories[prj.repositories.index(str(repoName))]    
+    
         
     def Get_projects(self):
         if self.has_access == True:
