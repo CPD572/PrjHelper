@@ -1,10 +1,10 @@
 # !/usr/bin/kivy
 # -*- coding: utf-8 -*-
 
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.button import Button
 from kivy.lang import Builder
 from kivy.properties import StringProperty, NumericProperty
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.button import Button
 
 
 Builder.load_string("""
@@ -49,6 +49,5 @@ class MenuBox(BoxLayout):
         self.on_menubutton_release_callback()
     
     def on_logout(self):
-        self.parent.parent.manager.transition.duration = 0
-        self.parent.parent.manager.current = 'Login'
+        self.manager.change_screen('Login')
                                       

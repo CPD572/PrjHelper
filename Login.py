@@ -1,17 +1,20 @@
 #!/usr/bin/kivy
 # -*- coding: utf-8 -*-
 
+from sys import platform
+from threading import Thread
+import time
+
+from kivy.clock import Clock
 from kivy.config import Config
-from BitbucketAPI import Bitbucket
-import Popups
 from kivy.core.window import Window
 from kivy.lang import Builder
 from kivy.properties import ObjectProperty
 from kivy.uix.screenmanager import Screen
-from sys import platform
-import time
-from threading import Thread
-from kivy.clock import Clock
+
+from BitbucketAPI import Bitbucket
+import Popups
+
 
 load_finished = False
 timing_event = None
@@ -109,7 +112,6 @@ class LoginScreen(Screen):
         #if username and password are correct
         if tmp == 1:
             
-            
             #check if Save login checkbox is checked
             if self.saveUserData.active == True:
                 
@@ -132,8 +134,7 @@ class LoginScreen(Screen):
                 self.popup.open()
                 
             elif self.loged_in == True:
-                self.manager.transition.duration = 0
-                self.manager.current = 'RepoSelector'
+                self.manager.change_screen('RepoSelector')
 
         
         #if username or password are incorrect
@@ -179,10 +180,10 @@ class LoginScreen(Screen):
         elif load_finished is True:
             timing_event.cancel()
             #change screen to RepoSelector        
-            self.manager.transition.duration = 0   
-            self.manager.current = 'RepoSelector'        
-            self.loged_in = True 
-  
+            self.manager.change_screen('RepoSelector')       
+            self.loged_in = True
+            if self.connection_session.user.isAdmin:
+                self.manager.dispatch("on_admin_connected", self.connection_session)
         
     def on_pre_leave(self, *args):
         Screen.on_pre_leave(self, *args)

@@ -1,9 +1,11 @@
-from xml.dom import minidom
-import xml.etree.ElementTree as ElementTree
-from BitbucketAPI import Bitbucket
-import subprocess
 import os
+import subprocess
 import sys
+from xml.dom import minidom
+
+from BitbucketAPI import Bitbucket
+import xml.etree.ElementTree as ElementTree
+
 
 bitbucket_api_link = 'http://repo.microlab.club/rest/api/1.0/'
 
@@ -72,6 +74,15 @@ class MicroLabPlatform(Bitbucket):
     def __init__(self):
         super(MicroLabPlatform, self).__init__(userfile, bitbucket_api_link)
         self.architecture = None
+        
+    def Login(self, user_name, password):
+        login_success = Bitbucket.Login(self, user_name, password) 
+        if login_success == 1:
+            if self.user.slug in ['andrei.bragarenco', 'dumitru.parascan']:
+                self.user.isAdmin = True
+                
+        return login_success
+        
         
     def Get_projects(self):
         super(MicroLabPlatform, self).Get_projects()

@@ -1,20 +1,23 @@
 #!/usr/bin/kivy
 # -*- coding: utf-8 -*-
 
-from kivy.uix.screenmanager import Screen
-from kivy.uix.treeview import TreeView
-from kivy.uix.tabbedpanel import TabbedPanelItem, TabbedPanel
-from kivy.uix.boxlayout import BoxLayout
+import os
+
 from kivy.core.window import Window
 from kivy.lang import Builder
-from behaviors.selectablebehavior import SelectedItemsView, TreeViewSelectableItem
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.screenmanager import Screen
+from kivy.uix.scrollview import ScrollView
+from kivy.uix.tabbedpanel import TabbedPanelItem, TabbedPanel
+from kivy.uix.treeview import TreeView
+
+from BitbucketAPI import SelectedRepoVersion, Repository, Branch, Commit
+from Popups import ContentPopup
 from behaviors.menubehavior import MenuBox, MenuButton
-import os
-from BitbucketAPI import Bitbucket, SelectedRepoVersion, Repository, Branch, Commit
+from behaviors.selectablebehavior import SelectedItemsView, TreeViewSelectableItem
 from behaviors.windowbehavior import adapt_window
 from prj_creator import ProjectCreator
-from Popups import ContentPopup
-from kivy.uix.scrollview import ScrollView
+
 
 Builder.load_string("""
 #:import hex kivy.utils.get_color_from_hex
@@ -65,6 +68,7 @@ class RepoSelectorScreen(Screen):
         self.window_size = (1400,800)
         self.old_size = self.window_size
         
+        
         self.entered = False
         self.selectedItemViews = []
         
@@ -72,11 +76,13 @@ class RepoSelectorScreen(Screen):
         Screen.on_pre_leave(self, *args)
         self.old_size = Window.size
         
+        
     def on_pre_enter(self, *args):
         Screen.on_pre_enter(self, *args)
-        adapt_window(self.old_size if self.old_size > self.window_size else self.window_size)
+        
         if self.connection_session != None and self.entered == False:
-            mlp_project=self.connection_session.GetProjectByKey("MLP")     
+            
+            mlp_project=self.connection_session.GetProjectByKey("MLP")
                    
             for layer in self.connection_session.architecture:
                 tab = Tab(str(layer))
@@ -130,20 +136,27 @@ class RepoSelectorScreen(Screen):
             self.ids.selected_view.add_widget(srolable)
                     
             menu = MenuBox()
-            change_view_button = MenuButton(text = 'All projects')
-            change_view_button.bind(on_release = self.on_change_view)
+            all_projects_view_button = MenuButton(text = 'All projects')
+            all_projects_view_button.bind(on_release = self.on_all_projects_view)
             
             clone_button = MenuButton(text = 'Create\nproject')
-            
             clone_button.bind(on_release = self.on_create_prj_button_release)
-            
-            
-            menu.add_button(change_view_button)
+
+            menu.add_button(all_projects_view_button)
             menu.add_button(clone_button)
+            
+            if self.connection_session.user.isAdmin:
+                change_architecture_button = MenuButton(text = '   Change\nArchitecture')
+                change_architecture_button.bind(on_release = self.on_change_arch_view)
+                menu.add_button(change_architecture_button)
+                
             self.ids.main_box.add_widget(menu)
             
             self.entered = True
             
+    def on_enter(self, *args):
+        Screen.on_enter(self, *args)
+        adapt_window(self.window_size if not self.manager.isMaximized else self.manager.window_size)
             
     def cancel_creating(self, _):
         self.create_form.dismiss()
@@ -186,8 +199,10 @@ class RepoSelectorScreen(Screen):
         tooltip_text = selected_item.displayText.replace(selected_item_text+'/', '')
         instance_to_dispatch.dispatch('on_add_item', selected_item, selected_item_text, tooltip_text)
         
-    def on_change_view(self, button):
-        self.manager.transition.duration = 0                                                                                     
-        self.manager.current = 'ProjectSelector'
+    def on_all_projects_view(self, button):
+        self.manager.change_screen('ProjectSelector')
+        
+    def on_change_arch_view(self, button):
+        self.manager.change_screen('ChangeArchitecture')
         
         

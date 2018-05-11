@@ -6,11 +6,14 @@ from datetime import datetime
 import json
 import math
 import os
-import requests
-from xml.dom import minidom
-import xml.etree.ElementTree as ElementTree
 from sys import platform
+from xml.dom import minidom
+
+import requests
 from requests.exceptions import ConnectTimeout, ConnectionError, ReadTimeout
+
+import xml.etree.ElementTree as ElementTree
+
 
 def search_env(env):
     envirement = str(env) if not isinstance(env, str) else env
@@ -84,6 +87,7 @@ class LogedUser(User):
         self.password = u''
         self.encoded_password = u''
         self.userfile = userfile
+        self.isAdmin = False
         
         if self.is_user_data_saved():
             self.load_userdata_from_file()
@@ -315,10 +319,7 @@ class Bitbucket:
             httpGetResponse = self.session.get(url, timeout = 5.0)
             self.jsonResponse = json.loads(httpGetResponse.text)
             if httpGetResponse.status_code == 200:
-                self.user.emailAddress = self.jsonResponse['emailAddress']
-                self.user.displayName = self.jsonResponse['displayName']
-                self.user.type = self.jsonResponse['type']
-                self.user.link = self.jsonResponse['links']['self'][0]['href']
+                self.user(**self.jsonResponse)
                 self.has_access = True
                 return 1
             else:

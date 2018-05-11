@@ -1,17 +1,20 @@
 #!/usr/bin/kivy
 # -*- coding: utf-8 -*-
 
-from kivy.uix.screenmanager import Screen
-from behaviors.selectablebehavior import SelectedItemsView, SelectedItem, TreeViewSelectableItem
-from behaviors.menubehavior import MenuBox, MenuButton
-from kivy.uix.treeview import TreeViewLabel, TreeView
+from sys import platform
+
 from kivy.core.window import Window
 from kivy.lang import Builder
-from sys import platform
+from kivy.uix.screenmanager import Screen
+from kivy.uix.treeview import TreeViewLabel, TreeView
+
 from BitbucketAPI import Bitbucket, SelectedRepoVersion, Repository, Branch, Commit
-from behaviors.windowbehavior import adapt_window
 from Popups import ContentPopup
+from behaviors.menubehavior import MenuBox, MenuButton
+from behaviors.selectablebehavior import SelectedItemsView, SelectedItem, TreeViewSelectableItem
+from behaviors.windowbehavior import adapt_window
 from prj_creator import ProjectCreator
+
 
 Builder.load_string("""
     
@@ -52,7 +55,6 @@ class ProjectsScreen(Screen):
         self.selected_items_view = None
         
         self.window_size = (800,400)
-        self.old_size = self.window_size
 
         self.creator = ProjectCreator()
         self.create_form = ContentPopup(title = "Create project")
@@ -100,15 +102,11 @@ class ProjectsScreen(Screen):
             
     def on_enter(self, *args):
         Screen.on_enter(self, *args)
-        adapt_window(self.old_size if self.old_size > self.window_size else self.window_size)
-        
-    def on_pre_leave(self, *args):
-        Screen.on_pre_leave(self, *args)
-        self.old_size = Window.size
+        adapt_window(self.window_size if not self.manager.isMaximized else self.manager.window_size)
+
         
     def on_change_view(self, button):
-        self.manager.transition.duration = 0                                                                                     
-        self.manager.current = 'RepoSelector'
+        self.manager.change_screen('RepoSelector')
         
     def on_selectable_item_double_tap(self,object,widget,item):
         
@@ -144,5 +142,6 @@ class ProjectsScreen(Screen):
             
     def create_project(self, project):
         self.create_form.dismiss()
+    
     
         

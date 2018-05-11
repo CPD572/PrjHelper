@@ -1,19 +1,22 @@
 #!/usr/bin/kivy
 # -*- coding: utf-8 -*-
 
-from kivy.uix.treeview import TreeViewLabel
-from kivy.uix.button import Button
-from kivy.uix.stacklayout import StackLayout
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.label import Label
-from kivy.uix.widget import Widget
+import os, sys
+import re
+from sys import platform
+
 from kivy.core.window import Window
 from kivy.lang import Builder
 from kivy.properties import StringProperty, NumericProperty
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.button import Button
+from kivy.uix.label import Label
+from kivy.uix.stacklayout import StackLayout
+from kivy.uix.treeview import TreeViewLabel
+from kivy.uix.widget import Widget
+
 from behaviors.hoverbehavior import HoverBehavior
-from sys import platform
-import re
-import os, sys
+
 
 app_path = os.path.abspath(os.path.dirname(sys.argv[0]))
     
