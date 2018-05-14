@@ -66,7 +66,6 @@ class ProjectsScreen(Screen):
         
     def on_pre_enter(self, *args):
         Screen.on_pre_enter(self, *args)
-        
         if self.connection_session != None and self.entered == False:
             self.selected_items_view = SelectedItemsView(label_text = 'Selected projects and repositories', width=350)
             self.ids.main_box.add_widget(self.selected_items_view)
@@ -89,7 +88,7 @@ class ProjectsScreen(Screen):
                         
             self.entered = True
             
-            menu = MenuBox()
+            menu = MenuBox(manager=self.manager)
             change_view_button = MenuButton(text = 'Go to\nMLP')
             change_view_button.bind(on_release = self.on_change_view)
             
@@ -102,8 +101,16 @@ class ProjectsScreen(Screen):
             
     def on_enter(self, *args):
         Screen.on_enter(self, *args)
+        self.manager.bind(on_unmaximaze = self.on_unmaximaze)
         adapt_window(self.window_size if not self.manager.isMaximized else self.manager.window_size)
 
+    def on_pre_leave(self, *args):
+        Screen.on_pre_leave(self, *args)
+        self.manager.unbind(on_unmaximaze = self.on_unmaximaze)
+        
+        
+    def on_unmaximaze(self, manager):
+        adapt_window(self.window_size)
         
     def on_change_view(self, button):
         self.manager.change_screen('RepoSelector')

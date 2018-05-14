@@ -57,14 +57,13 @@ class ChangeArchitectureScreen(Screen):
         
     def on_pre_enter(self, *args):
         Screen.on_pre_enter(self, *args)
-        
         if self.connection_session != None and self.entered == False:
             mlp_project=self.connection_session.GetProjectByKey("MLP")
             for repository in mlp_project.repositories:
                 node = TreeViewSelectableItem(item=repository, text=repository.name)
                 self.ids.scrolled_tree.add_node(node)
             
-            menu = MenuBox()
+            menu = MenuBox(manager=self.manager)
             prev_view = MenuButton(text = 'Back')
             prev_view.bind(on_release = self.on_back_button_press)
             menu.add_button(prev_view)
@@ -74,9 +73,13 @@ class ChangeArchitectureScreen(Screen):
             
     def on_enter(self, *args):
         Screen.on_enter(self, *args)
+        self.manager.bind(on_unmaximaze = self.on_unmaximaze)
         adapt_window(self.window_size if not self.manager.isMaximized else self.manager.window_size )
             
     def on_back_button_press(self, button):
         self.manager.previuos_view()
         
+        
+    def on_unmaximaze(self, manager):
+        adapt_window(self.window_size)
         

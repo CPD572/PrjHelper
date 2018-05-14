@@ -36,8 +36,9 @@ class MenuButton(Button):
 class MenuBox(BoxLayout): 
     change_view_button_text = StringProperty()
        
-    def __init__(self, **kwargs):
+    def __init__(self, manager, **kwargs):
         super(MenuBox, self).__init__(**kwargs)
+        self.manager = manager
         
     def add_button(self, button):
         button.height = '60dp'

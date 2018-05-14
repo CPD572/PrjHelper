@@ -66,23 +66,15 @@ class RepoSelectorScreen(Screen):
         self.create_form.add_content(self.creator)
         
         self.window_size = (1400,800)
-        self.old_size = self.window_size
-        
-        
+
         self.entered = False
         self.selectedItemViews = []
-        
-    def on_pre_leave(self, *args):
-        Screen.on_pre_leave(self, *args)
-        self.old_size = Window.size
-        
-        
+
+
     def on_pre_enter(self, *args):
         Screen.on_pre_enter(self, *args)
-        
+        self.manager.bind(on_unmaximaze = self.on_unmaximaze)
         if self.connection_session != None and self.entered == False:
-            
-            mlp_project=self.connection_session.GetProjectByKey("MLP")
                    
             for layer in self.connection_session.architecture:
                 tab = Tab(str(layer))
@@ -135,7 +127,7 @@ class RepoSelectorScreen(Screen):
             srolable.add_widget(box)
             self.ids.selected_view.add_widget(srolable)
                     
-            menu = MenuBox()
+            menu = MenuBox(manager=self.manager)
             all_projects_view_button = MenuButton(text = 'All projects')
             all_projects_view_button.bind(on_release = self.on_all_projects_view)
             
@@ -157,6 +149,14 @@ class RepoSelectorScreen(Screen):
     def on_enter(self, *args):
         Screen.on_enter(self, *args)
         adapt_window(self.window_size if not self.manager.isMaximized else self.manager.window_size)
+        
+    def on_pre_leave(self, *args):
+        Screen.on_pre_leave(self, *args)
+        self.manager.unbind(on_unmaximaze = self.on_unmaximaze)
+        
+    def on_unmaximaze(self, manager):
+        adapt_window(self.window_size)
+        
             
     def cancel_creating(self, _):
         self.create_form.dismiss()

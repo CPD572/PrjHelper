@@ -11,6 +11,7 @@ from kivy.core.window import Window
 from kivy.lang import Builder
 from kivy.properties import ObjectProperty
 from kivy.uix.screenmanager import Screen
+from behaviors.windowbehavior import adapt_window
 
 from BitbucketAPI import Bitbucket
 import Popups
@@ -89,6 +90,7 @@ class LoginScreen(Screen):
         super(LoginScreen, self).__init__(**kwargs)
         self.loged_in = False
         self.left_top_cord = ()
+        self.window_size = (400, 160)
         if session != None:
             self.connection_session = session
             if self.connection_session.user.slug != u'':
@@ -157,17 +159,21 @@ class LoginScreen(Screen):
         self.saveUserData.active = False
         self.connection_session.user.delete_user()
         
-    def on_pre_enter(self, *args):
-        Screen.on_pre_enter(self, *args)
-        if self.loged_in == True:
-            Window.left, Window.top = self.left_top_cord
-        Window.size = (400, 160)
-        self.left_top_cord = (Window.left, Window.top)
         
     def on_enter(self, *args):
         Screen.on_enter(self, *args)
-        if self.autologin == True and self.loged_in == False:
+        if self.autologin == True and not self.loged_in:
             self.ids.submit_button.trigger_action()
+            if not self.left_top_cord:
+                self.left_top_cord = (Window.left, Window.top)
+        if self.loged_in:
+            if self.manager.isMaximized:
+                Window.restore()
+            adapt_window(self.window_size, left_top_cords=self.left_top_cord)
+        else:
+            adapt_window(self.window_size)
+            if not self.left_top_cord:
+                self.left_top_cord = (Window.left, Window.top)
         
         
     def on_popup_content(self, _):

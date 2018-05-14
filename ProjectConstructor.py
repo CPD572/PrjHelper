@@ -23,6 +23,7 @@ class CustomScreenMenager(ScreenManager):
     def __init__(self, *args, **kwargs):
         super(CustomScreenMenager, self).__init__(*args, **kwargs)
         self.register_event_type('on_admin_connected')
+        self.register_event_type('on_unmaximaze')
         self.transition.duration = 0
         self.isMaximized, self.isMinimized, self.fullscreen = False, False, False
         self.window_size = ()
@@ -50,7 +51,10 @@ class CustomScreenMenager(ScreenManager):
     def on_window_restore(self, w):
         if self.isMaximized and not self.isMinimized:
             self.isMaximized = False
+            self.dispatch('on_unmaximaze')
         
+    def on_unmaximaze(self):
+        pass
                 
                 
 class ProjectConstructorApp(App):
