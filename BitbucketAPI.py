@@ -9,6 +9,7 @@ import os
 from sys import platform
 from xml.dom import minidom
 from urllib.parse import urlparse
+import re
 
 import requests
 from requests.exceptions import ConnectTimeout, ConnectionError, ReadTimeout
@@ -95,7 +96,9 @@ class User(object):
             self.type = kwargs['type']
         if 'links' in kwargs:
             self.link = kwargs['links']['self'][0]['href']
-            
+            if not bitbucket_url in self.link:
+                url = urlparse(self.link)
+                self.link = url._replace(netloc=bitbucket_url).geturl()
         
                 
                 
@@ -233,6 +236,9 @@ class Project:
             self.type = kwargs['type']
         if 'links' in kwargs:
             self.link = kwargs['links']['self'][0]['href']
+            if not bitbucket_url in self.link:
+                url = urlparse(self.link)
+                self.link = url._replace(netloc=bitbucket_url).geturl()
 
     def __eq__(self, projectKey):
         return self.key == projectKey
@@ -341,7 +347,15 @@ class Repository:
                 http_value = 1
                 ssh_value = 0
             self.http_link = kwargs['links']['clone'][http_value]['href']
+            if not bitbucket_url in self.http_link:
+                url = urlparse(self.http_link)
+                user_name, _ = url.netloc.split('@')
+                self.http_link = url._replace(netloc=user_name+'@'+bitbucket_url).geturl()
             self.ssh_link = kwargs['links']['clone'][ssh_value]['href']
+            if not bitbucket_url in self.ssh_link:
+                url = urlparse(self.ssh_link)
+                user_name, _ = url.netloc.split('@')
+                self.ssh_link = url._replace(netloc=user_name+'@'+bitbucket_url).geturl()
         if 'branches' in kwargs:
             self.branches = kwargs['branches']
 

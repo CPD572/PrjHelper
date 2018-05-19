@@ -2,13 +2,15 @@ import os
 import subprocess
 import sys
 from xml.dom import minidom
+from urllib.parse import urlparse
 
 from BitbucketAPI import Bitbucket, User
 import xml.etree.ElementTree as ElementTree
 
-#home_bitbucket_link = "http://repo.microlab.club"
-home_bitbucket_link = "http://81.180.73.68:7990"
-bitbucket_api_link = home_bitbucket_link+'/rest/api/1.0/'
+protocol = 'http://'
+#home_bitbucket_link = "repo.microlab.club"
+home_bitbucket_link = "81.180.73.68:7990"
+bitbucket_api_link = protocol+home_bitbucket_link+'/rest/api/1.0/'
 
 app_path = os.path.abspath(os.path.dirname(sys.argv[0]))
 userfile = os.path.abspath(app_path + '/usr/user.mlbu')
@@ -110,13 +112,22 @@ class MicroLabPlatform(Bitbucket):
                 print("sho?")
         else:
             os.chdir("00_platform_modules")
-            if sys.platform is "linux":
+            if "linux" in sys.platform:
                 import pexpect
                 if not "credential.helper" in os.popen("git config -l").readlines():
                     os.system("git config credential.helper cache --timeout=86400")
                 pexpect.run("git fetch", events={"Password for ":self.user.password})
             else:
-                subprocess.call(["git","fetch"])
+                if 'fatal' in subprocess.getoutput(["git","fetch"]):
+                    remote = subprocess.getoutput(["git", 'remote', 'show'])
+                    remote_url = subprocess.getoutput(["git", 'config', 'remote.'+remote+'.url'])
+                    if not home_bitbucket_link in remote_url:
+                        parced_url = urlparse(remote_url)
+                        user_name, _ = parced_url.netloc.split('@')
+                        actual_url = parced_url._replace(netloc=user_name+'@'+home_bitbucket_link).geturl()
+                        subprocess.call(['git', "remote", "set-url", remote, actual_url])
+                        subprocess.call(["git","fetch"])
+                    
             responses = os.popen("git status").readlines()
             if "Your branch is up-to-date with 'origin/master'.\n" in responses:
                 lastVersion = True
