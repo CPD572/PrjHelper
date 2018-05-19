@@ -3,11 +3,12 @@ import subprocess
 import sys
 from xml.dom import minidom
 
-from BitbucketAPI import Bitbucket
+from BitbucketAPI import Bitbucket, User
 import xml.etree.ElementTree as ElementTree
 
-
-bitbucket_api_link = 'http://repo.microlab.club/rest/api/1.0/'
+#home_bitbucket_link = "http://repo.microlab.club"
+home_bitbucket_link = "http://81.180.73.68:7990"
+bitbucket_api_link = home_bitbucket_link+'/rest/api/1.0/'
 
 app_path = os.path.abspath(os.path.dirname(sys.argv[0]))
 userfile = os.path.abspath(app_path + '/usr/user.mlbu')

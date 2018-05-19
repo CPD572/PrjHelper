@@ -65,7 +65,6 @@ Builder.load_string("""
                 font_size: 14
             CheckBox:
                 id: isSaved
-                #on_active: root.on_save_data_checkbox(self, self.active)
                 size_hint: [.1, 1]
     
         BoxLayout:

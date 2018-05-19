@@ -58,6 +58,7 @@ Builder.load_string("""
     orientation: 'vertical'
     size_hint: [None,1]
     Label:
+        id: view_label
         size_hint: [1, None]
         height: root.label_height
         text: root.label_text
@@ -129,7 +130,7 @@ class SelectedItemsView(BoxLayout):
     label_text = StringProperty()
     label_height = NumericProperty()
     
-    def __init__(self, label_text, **kwargs):
+    def __init__(self, label_text, halign=None, text_color=None, bold_text=False, **kwargs):
         self.register_event_type('on_add_item')
         self.register_event_type('on_delete_item')
         super(SelectedItemsView, self).__init__(**kwargs)
@@ -140,6 +141,12 @@ class SelectedItemsView(BoxLayout):
         self.widgets = list()
         self.selectedItem_height = self.size[1] - self.label_height - self.spacing
         self.stack.bind(minimum_size=lambda w, size: w.setter('height')(w, size[1] if size[1] > self.selectedItem_height else self.selectedItem_height))
+        if halign is not None:
+            self.ids.view_label.halign = halign
+        if text_color is not None:
+            self.ids.view_label.color = text_color
+        if bold_text:
+            self.ids.view_label.bold = bold_text
         
     def on_add_item(self, item, item_text, tooltip_text):
         if list(filter(lambda widget: widget.label.text == item_text, self.widgets)) == []:

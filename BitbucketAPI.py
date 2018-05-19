@@ -8,6 +8,7 @@ import math
 import os
 from sys import platform
 from xml.dom import minidom
+from urllib.parse import urlparse
 
 import requests
 from requests.exceptions import ConnectTimeout, ConnectionError, ReadTimeout
@@ -31,7 +32,8 @@ def search_env(env):
     else:
         return True
 
-
+bitbucket_url = ''
+bitbucket_api_link = ''
 users = 'users'
 projects_repo = 'projects'
 branches = 'branches'
@@ -50,8 +52,14 @@ def prettify(elem):
     reparsed = minidom.parseString(rough_string)
     return reparsed.toprettyxml(indent="  ")
 
-class User:
+class User(object):
+    
+    created = []
+    
     def __init__(self, kwargs= None):
+        if self in User.created:
+            return
+        self.name = u''
         self.slug = u''
         self.id = u''
         self.emailAddress = u''
@@ -59,38 +67,75 @@ class User:
         self.type = u''
         self.link = u''
         if kwargs is not None:
-            self(**kwargs)
+            if 'name' in kwargs:
+                if not User.isCreated(kwargs['name']):
+                    self(**kwargs)
+                    User.created.append(self)
             
     def __str__(self):
         return '%s' % self.displayName
      
+    def __repr__(self):
+        return '%s' % self.displayName
+     
     def __call__(self, **kwargs):
+        if 'name' in kwargs:
+            self.name = kwargs['name']
+        if 'id' in kwargs:
+            self.id = kwargs['id']
         if 'slug' in kwargs:
             self.slug = kwargs['slug']
         if 'emailAddress' in kwargs:
             self.emailAddress = kwargs['emailAddress']
-        if 'id' in kwargs:
-            self.id = kwargs['id']
         if 'displayName' in kwargs:
             self.displayName = kwargs['displayName']
+        else:
+            self.displayName = self.name + ' [Deleted]'
         if 'type' in kwargs:
             self.type = kwargs['type']
         if 'links' in kwargs:
             self.link = kwargs['links']['self'][0]['href']
+            
         
+                
+                
+    def __eq__(self, value):
+        if hasattr(self, 'id') and hasattr(value, 'id'):
+            return self.id == value.id
+        elif hasattr(self, 'name') and hasattr(value, 'name'):
+            return self.name == value.name
+        elif hasattr(self, 'id') and isinstance(value, int):
+            return self.id == value
+        elif hasattr(self, 'name') and isinstance(value, str):
+            return self.name == value
+    
+    def __new__(cls, *args, **kwargs):
+        data = args[0]
+        if 'id' in data and User.isCreated(data['id']):
+            return User.created[User.created.index(data['id'])]
+        elif 'name' in data and User.isCreated(data['name']):
+            return User.created[User.created.index(data['name'])]
+        else:
+            return super(User, cls).__new__(cls)
+                
+    @staticmethod
+    def isCreated(userInfo):
+        return userInfo in User.created
 
 
  
 class LogedUser(User):                
     def __init__(self, userfile, **kwargs):
-        super(LogedUser, self).__init__(kwargs)
+        if self in User.created:
+            return
         self.password = u''
         self.encoded_password = u''
         self.userfile = userfile
         self.isAdmin = False
-        
+        super(LogedUser, self).__init__(kwargs)
         if self.is_user_data_saved():
             self.load_userdata_from_file()
+        
         
         
     def __call__(self, **kwargs):
@@ -99,16 +144,20 @@ class LogedUser(User):
             self.password = kwargs['password']
             self.encode_password()
                 
+    def __new__(cls, *args, **kwargs):
+        return User.__new__(cls, *args, **kwargs)
+    
+    def __eq__(self, id):
+        return self.id == id
                 
     def is_user_data_saved(self):
         return os.path.exists(self.userfile)
     
     def load_userdata_from_file(self):
-        if os.path.exists(self.userfile):
-            user_data = ElementTree.parse(self.userfile).getroot()
-            self.encoded_password = user_data.find('.//password').text
-            self.decode_password()
-            self.slug = user_data.find('.//user').attrib['name']
+        user_data = ElementTree.parse(self.userfile).getroot()
+        self.encoded_password = user_data.find('.//password').text
+        self.decode_password()
+        self.slug = user_data.find('.//user').attrib['name']
                         
     def encode_password(self):
         if self.password == u'':
@@ -224,7 +273,7 @@ class Commit(object):
         if kwargs is None: 
             self.id = ''
             self.displayId = ''
-            self.author = User()
+            self.author = None
             self.authorTimestamp = None
             self.message = ''
             self.parents = []
@@ -304,17 +353,21 @@ class Repository:
 class Bitbucket:
     
     def __init__(self, userfile, link):
+        global bitbucket_api_link
+        global bitbucket_url
+        bitbucket_api_link = link
+        bitbucket_url = urlparse(bitbucket_api_link).netloc
+        
         self.user = LogedUser(userfile)
         self.has_access = False
         self.session = requests.Session()
         self.projects = []
         self.progress_string = "Starting load data from Bitbucket"
-        self.bitbucket_api_link = link
         
     def Login(self, user_name, password):
         self.user(slug = user_name, password = password)
         self.session.auth = requests.auth.HTTPBasicAuth(self.user.slug, self.user.password)
-        url = self.bitbucket_api_link + users + '/'+ str(self.user.slug)
+        url = bitbucket_api_link + users + '/'+ str(self.user.slug)
         try:
             httpGetResponse = self.session.get(url, timeout = 5.0)
             self.jsonResponse = json.loads(httpGetResponse.text)
@@ -371,7 +424,7 @@ class Bitbucket:
         
     def get_repo_branches(self, repo):
         if self.has_access == True:
-            url = self.bitbucket_api_link + projects_repo + '/' + repo.project.key + '/' + module_repos + '/' + repo.slug + '/' + branches
+            url = bitbucket_api_link + projects_repo + '/' + repo.project.key + '/' + module_repos + '/' + repo.slug + '/' + branches
             rsp = self.Paged_response_parse(url)
             if 'values' in rsp:
                 for value in rsp['values']:
@@ -381,7 +434,7 @@ class Bitbucket:
                     repo.branches.append(branch)
                     
     def get_repo_commits_on_branch(self, repo, branch):
-        url = self.bitbucket_api_link + projects_repo + '/' + repo.project.key + '/' + module_repos + '/' + repo.slug + '/' + commits_on_branch + branch.id
+        url = bitbucket_api_link + projects_repo + '/' + repo.project.key + '/' + module_repos + '/' + repo.slug + '/' + commits_on_branch + branch.id
         rsp = self.Paged_response_parse(url)
         requested_commits = []
         if 'values' in rsp:
@@ -415,7 +468,7 @@ class Bitbucket:
         
     def Get_projects(self):
         if self.has_access == True:
-            url = self.bitbucket_api_link + projects_repo
+            url = bitbucket_api_link + projects_repo
             rsp = self.Paged_response_parse(url)
             if 'values' in rsp:
                 for value in rsp['values']:
@@ -434,9 +487,9 @@ class Bitbucket:
         if self.has_access == True:
             repositories = []
             if project_key == u'':
-                url = self.bitbucket_api_link + module_repos
+                url = bitbucket_api_link + module_repos
             else:
-                url = self.bitbucket_api_link + projects_repo + u'/' + project_key + u'/' + module_repos
+                url = bitbucket_api_link + projects_repo + u'/' + project_key + u'/' + module_repos
             
             rsp = self.Paged_response_parse(url)
             if 'values' in rsp:

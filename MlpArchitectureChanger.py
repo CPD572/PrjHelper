@@ -3,11 +3,18 @@
 from kivy.core.window import Window
 from kivy.lang import Builder
 from kivy.uix.screenmanager import Screen
+from kivy.uix.togglebutton import ToggleButton
 
 from behaviors.menubehavior import MenuBox, MenuButton
 from behaviors.selectablebehavior import SelectedItemsView, TreeViewSelectableItem
 from behaviors.windowbehavior import adapt_window
 import xml.etree.ElementTree as ElementTree
+from kivy.uix.checkbox import CheckBox
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.label import Label
+from kivy.utils import get_color_from_hex as hex
+from kivy.uix.gridlayout import GridLayout
+from kivy.uix.stacklayout import StackLayout
 
 
 Builder.load_string("""
@@ -22,12 +29,18 @@ Builder.load_string("""
             id: info
             size_hint: [1, 1]
             spacing: 5
-            orientation: 'horizontal'
-            
-            
+            padding: 5
+            orientation: 'vertical'
+            BoxLayout:
+                id: layers_checkboxes
+                orientation: 'vertical'
+                spacing: 5
+                    
+                      
         BoxLayout:
             id: repos
             size_hint: [.7, 1]
+            spacing: 5
             canvas:
                 Color:
                     rgba: hex('#303030')
@@ -42,6 +55,7 @@ Builder.load_string("""
                     id: scrolled_tree
                     hide_root: True
                     size_hint_y: None
+
  
 """)
 
@@ -51,6 +65,7 @@ class ChangeArchitectureScreen(Screen):
         super(ChangeArchitectureScreen, self).__init__(**kwargs)
         self.connection_session = session
         self.ids.scrolled_tree.bind(minimum_size=lambda w, size: w.setter('height')(w, size[1]))
+        self.selected_view = SelectedItemsView(label_text="References:", size_hint=[1,1], halign='left', text_color=hex("#2bb3e7"), bold_text=True)
         self.entered = False
         
         self.window_size = (900,500)
@@ -62,11 +77,29 @@ class ChangeArchitectureScreen(Screen):
             for repository in mlp_project.repositories:
                 node = TreeViewSelectableItem(item=repository, text=repository.name)
                 self.ids.scrolled_tree.add_node(node)
+                
+            for layer in self.connection_session.architecture:
+                grid = StackLayout(orientation='tb-lr')
+                box = BoxLayout(orientation='horizontal', size_hint=[None, None], width=100, height=35, spacing=5)
+                checkbox = ToggleButton(group='layers', size_hint=[1,1], text=str(layer), on_press=self.on_togle_press)
+                box.add_widget(checkbox)
+                grid.add_widget(box)
+                #for i in [1,2]:
+                #    grid.add_widget(BoxLayout(orientation='horizontal', size_hint=[1,1]))
+                self.ids.layers_checkboxes.add_widget(grid)
+                    
+            self.ids.info.add_widget(self.selected_view)
             
             menu = MenuBox(manager=self.manager)
+            
+            export_button = MenuButton(text = 'Export to\n.mlparch')
+            export_button.bind(on_release = self.export_to_mlparch)
+            menu.add_button(export_button)
+            
             prev_view = MenuButton(text = 'Back')
             prev_view.bind(on_release = self.on_back_button_press)
             menu.add_button(prev_view)
+            
             self.ids.main_box.add_widget(menu)
             
             self.entered = True
@@ -82,4 +115,11 @@ class ChangeArchitectureScreen(Screen):
         
     def on_unmaximaze(self, manager):
         adapt_window(self.window_size)
+        
+        
+    def on_togle_press(self, button):
+        print(button.text)
+        
+    def export_to_mlparch(self, button):
+        print('Exporting...\nFinished')
         
