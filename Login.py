@@ -14,6 +14,7 @@ from kivy.uix.screenmanager import Screen
 from behaviors.windowbehavior import adapt_window
 
 from BitbucketAPI import Bitbucket
+from MLProject import home_bitbucket_link
 import Popups
 
 
@@ -28,12 +29,24 @@ Builder.load_string("""
     username: user_name
     password: password
     saveUserData: isSaved
+    server_host: serverhost
     
     BoxLayout:
         id: login
         orientation: "vertical"
         padding: 10
         spacing: 10
+        
+        BoxLayout:
+            Label:
+                text: 'Server host'
+                size_hint_x: .7
+            TextInput:
+                id: serverhost
+                multiline: False
+                write_tab: False
+                selection_color: [0.1843, 0.6549, 0.8313, .5]
+                focus: True
         
         BoxLayout:
             Label:
@@ -81,6 +94,7 @@ Builder.load_string("""
 
 class LoginScreen(Screen):
 
+    server_host = ObjectProperty()
     username = ObjectProperty()
     password = ObjectProperty()
     saveUserData = ObjectProperty()
@@ -88,9 +102,10 @@ class LoginScreen(Screen):
     def __init__(self,session=None, **kwargs):
         super(LoginScreen, self).__init__(**kwargs)
         self.ids.password.bind(on_text_validate=self.on_enter_pressed)
+        self.server_host.hint_text = home_bitbucket_link
         self.loged_in = False
         self.left_top_cord = ()
-        self.window_size = (400, 160)
+        self.window_size = (400, 200)
         if session != None:
             self.connection_session = session
             if self.connection_session.user.slug != u'':
@@ -103,6 +118,7 @@ class LoginScreen(Screen):
                 self.autologin = False
         else:       
             self.connection_session = Bitbucket()
+            
             
     def is_user_data_saved(self):
         return self.connection_session.user.is_user_data_saved()
@@ -128,7 +144,6 @@ class LoginScreen(Screen):
                 self.thread = Thread(target=self.connection_session.Get_projects)
                 self.thread.daemon = True
                 
-                
                 self.popup = Popups.StandartPopup(title = 'Progress', message = self.connection_session.progress_string)
                 timing_event = Clock.schedule_interval(self.on_popup_content, .1)
                 
@@ -145,12 +160,16 @@ class LoginScreen(Screen):
             self.loged_in = False
             popup.open()
             self.reset_form()
+            self.connection_session.projects = []
+            self.connection_session.progress_string = "Starting load data from Bitbucket"
             
         #No internet connection or server is not responding
         elif  tmp == -1:
             popup = Popups.ErrorPopup(message = 'There is no server connection. Timeout was reached.')
             popup.open()
             self.loged_in = False
+            self.connection_session.projects = []
+            self.connection_session.progress_string = "Starting load data from Bitbucket"
 
             
     def reset_form(self):
@@ -190,6 +209,8 @@ class LoginScreen(Screen):
             self.loged_in = True
             if self.connection_session.user.isAdmin:
                 self.manager.dispatch("on_admin_connected", self.connection_session)
+            load_finished = False
+            self.popup = None
         
     def on_pre_leave(self, *args):
         Screen.on_pre_leave(self, *args)

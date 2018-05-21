@@ -204,8 +204,8 @@ class LogedUser(User):
                 
     def delete_saved_user(self):
         if self.is_user_data_saved():
-            os.remove(userfile)
-            os.rmdir(os.path.dirname(userfile))
+            os.remove(self.userfile)
+            os.rmdir(os.path.dirname(self.userfile))
         else:
             return 
 
