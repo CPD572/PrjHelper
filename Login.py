@@ -87,6 +87,7 @@ class LoginScreen(Screen):
     
     def __init__(self,session=None, **kwargs):
         super(LoginScreen, self).__init__(**kwargs)
+        self.ids.password.bind(on_text_validate=self.on_enter_pressed)
         self.loged_in = False
         self.left_top_cord = ()
         self.window_size = (400, 160)
@@ -194,3 +195,7 @@ class LoginScreen(Screen):
         Screen.on_pre_leave(self, *args)
         if hasattr(self, 'thread'):
             del self.thread
+            
+            
+    def on_enter_pressed(self, button):
+        self.Submit()
