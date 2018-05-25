@@ -4,13 +4,13 @@ import sys
 from xml.dom import minidom
 from urllib.parse import urlparse
 
-from BitbucketAPI import Bitbucket, User
+from BitbucketAPI import Bitbucket
 import xml.etree.ElementTree as ElementTree
 
-protocol = 'http://'
-#home_bitbucket_link = "repo.microlab.club"
-home_bitbucket_link = "81.180.73.68:7990"
-bitbucket_api_link = protocol+home_bitbucket_link+'/rest/api/1.0/'
+#protocol = 'http://'
+home_bitbucket_link = "repo.microlab.club"
+#home_bitbucket_link = "81.180.73.68:7990"
+#bitbucket_api_link = protocol+home_bitbucket_link+'/rest/api/1.0/'
 
 app_path = os.path.abspath(os.path.dirname(sys.argv[0]))
 userfile = os.path.abspath(app_path + '/usr/user.mlbu')
@@ -75,10 +75,12 @@ class SoftwareLayer(object):
 class MicroLabPlatform(Bitbucket):
     
     def __init__(self):
-        super(MicroLabPlatform, self).__init__(userfile, bitbucket_api_link)
+        super(MicroLabPlatform, self).__init__(userfile, home_bitbucket_link)
         self.architecture = None
         
     def Login(self, user_name, password):
+        global home_bitbucket_link
+        self.url = home_bitbucket_link
         login_success = Bitbucket.Login(self, user_name, password) 
         if login_success == 1:
             if self.user.slug in ['andrei.bragarenco', 'dumitru.parascan']:
@@ -99,7 +101,7 @@ class MicroLabPlatform(Bitbucket):
         
         if not os.path.exists(os.path.abspath(app_path+"/00_platform_modules")) \
         or not os.path.exists(os.path.abspath(app_path+"/00_platform_modules/Architecture.mlparch")):
-            url = bitbucket_api_link+"projects/MLP/repos/00_platform_modules"
+            url = self.url+"projects/MLP/repos/00_platform_modules"
             rsp = self.parse_response(url)
             if not "errors" in rsp:
                 repo = self.Get_repository_by_response(rsp)
@@ -162,12 +164,3 @@ class MicroLabPlatform(Bitbucket):
                             layer_structure(module= modules.attrib['group']+"/"+repo.attrib['name'])
 
                 
-                #print("\n"+str(layer_structure)+":\n"+str(layer_structure.modules))
-                    
-        
-                    
-        #finally:
-        #    if "00_platform_modules" in os.getcwd():
-        #        os.chdir("..")
-        #    
-        

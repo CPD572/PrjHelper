@@ -14,7 +14,7 @@ from kivy.uix.screenmanager import Screen
 from behaviors.windowbehavior import adapt_window
 
 from BitbucketAPI import Bitbucket
-from MLProject import home_bitbucket_link
+import MLProject
 import Popups
 
 
@@ -102,7 +102,7 @@ class LoginScreen(Screen):
     def __init__(self,session=None, **kwargs):
         super(LoginScreen, self).__init__(**kwargs)
         self.ids.password.bind(on_text_validate=self.on_enter_pressed)
-        self.server_host.hint_text = home_bitbucket_link
+        self.server_host.hint_text = MLProject.home_bitbucket_link
         self.loged_in = False
         self.left_top_cord = ()
         self.window_size = (400, 200)
@@ -125,6 +125,12 @@ class LoginScreen(Screen):
             
     def Submit(self):
         global timing_event
+        if not self.server_host.text == '':
+            MLProject.home_bitbucket_link = self.server_host.text
+        else:
+            MLProject.home_bitbucket_link = self.server_host.hint_text
+            
+        print('Connecting to '+MLProject.home_bitbucket_link)
         tmp = self.connection_session.Login(self.username.text, self.password.text)
         
         #if username and password are correct

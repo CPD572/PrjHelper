@@ -67,7 +67,7 @@ class ChangeArchitectureScreen(Screen):
         self.ids.scrolled_tree.bind(minimum_size=lambda w, size: w.setter('height')(w, size[1]))
         self.selected_view = SelectedItemsView(label_text="References:", size_hint=[1,1], halign='left', text_color=hex("#2bb3e7"), bold_text=True)
         self.entered = False
-        
+        self.previous_pushed_button = None
         self.window_size = (900,500)
         
     def on_pre_enter(self, *args):
@@ -79,14 +79,11 @@ class ChangeArchitectureScreen(Screen):
                 self.ids.scrolled_tree.add_node(node)
                 
             for layer in self.connection_session.architecture:
-                grid = StackLayout(orientation='tb-lr')
-                box = BoxLayout(orientation='horizontal', size_hint=[None, None], width=100, height=35, spacing=5)
-                checkbox = ToggleButton(group='layers', size_hint=[1,1], text=str(layer), on_press=self.on_togle_press)
+                box = BoxLayout(orientation='horizontal', size_hint=[None, 1], width=100, spacing=5)
+                checkbox = ToggleButton(group='layers', size_hint=[1,1], text=str(layer), on_press=self.on_togle_press, allow_no_selection = False)
                 box.add_widget(checkbox)
-                grid.add_widget(box)
-                #for i in [1,2]:
-                #    grid.add_widget(BoxLayout(orientation='horizontal', size_hint=[1,1]))
-                self.ids.layers_checkboxes.add_widget(grid)
+                self.ids.layers_checkboxes.add_widget(box)
+                
                     
             self.ids.info.add_widget(self.selected_view)
             
@@ -118,7 +115,13 @@ class ChangeArchitectureScreen(Screen):
         
         
     def on_togle_press(self, button):
-        print(button.text)
+        print(button.parent.children)
+        #layer = self.connection_session.architecture
+        #if layer[layer.index(button.text)].hasSublayers and len(button.parent.children) == 1:
+        #    #===================================================================================
+        #    button.parent.add_widget(ToggleButton(group='layers', size_hint=[1,1], text=str(layer), on_press=self.on_togle_press))
+        #    #===================================================================================
+        #    self.previous_pushed_button = button
         
     def export_to_mlparch(self, button):
         print('Exporting...\nFinished')

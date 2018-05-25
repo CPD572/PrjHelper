@@ -34,7 +34,7 @@ def search_env(env):
         return True
 
 bitbucket_url = ''
-bitbucket_api_link = ''
+bitbucket_api_link = 'http://'+bitbucket_url+'/rest/api/1.0/'
 users = 'users'
 projects_repo = 'projects'
 branches = 'branches'
@@ -366,11 +366,14 @@ class Repository:
 
 class Bitbucket:
     
+    url = property()
+    
     def __init__(self, userfile, link):
         global bitbucket_api_link
         global bitbucket_url
-        bitbucket_api_link = link
-        bitbucket_url = urlparse(bitbucket_api_link).netloc
+        bitbucket_url = link
+        bitbucket_api_link = urlparse(bitbucket_api_link)._replace(netloc=bitbucket_url).geturl()
+        self._url = bitbucket_api_link
         
         self.user = LogedUser(userfile)
         self.has_access = False
@@ -378,10 +381,20 @@ class Bitbucket:
         self.projects = []
         self.progress_string = "Starting load data from Bitbucket"
         
+    @url.setter
+    def url(self, new_url):
+        global bitbucket_api_link
+        self._url = urlparse(bitbucket_api_link)._replace(netloc=new_url).geturl()
+        bitbucket_api_link = self._url
+        
+    @url.getter
+    def url(self):
+        return self._url
+        
     def Login(self, user_name, password):
         self.user(slug = user_name, password = password)
         self.session.auth = requests.auth.HTTPBasicAuth(self.user.slug, self.user.password)
-        url = bitbucket_api_link + users + '/'+ str(self.user.slug)
+        url = self._url + users + '/'+ str(self.user.slug)
         try:
             httpGetResponse = self.session.get(url, timeout = 5.0)
             self.jsonResponse = json.loads(httpGetResponse.text)
@@ -438,7 +451,7 @@ class Bitbucket:
         
     def get_repo_branches(self, repo):
         if self.has_access == True:
-            url = bitbucket_api_link + projects_repo + '/' + repo.project.key + '/' + module_repos + '/' + repo.slug + '/' + branches
+            url = self._url + projects_repo + '/' + repo.project.key + '/' + module_repos + '/' + repo.slug + '/' + branches
             rsp = self.Paged_response_parse(url)
             if 'values' in rsp:
                 for value in rsp['values']:
@@ -448,7 +461,7 @@ class Bitbucket:
                     repo.branches.append(branch)
                     
     def get_repo_commits_on_branch(self, repo, branch):
-        url = bitbucket_api_link + projects_repo + '/' + repo.project.key + '/' + module_repos + '/' + repo.slug + '/' + commits_on_branch + branch.id
+        url = self._url + projects_repo + '/' + repo.project.key + '/' + module_repos + '/' + repo.slug + '/' + commits_on_branch + branch.id
         rsp = self.Paged_response_parse(url)
         requested_commits = []
         if 'values' in rsp:
@@ -482,7 +495,7 @@ class Bitbucket:
         
     def Get_projects(self):
         if self.has_access == True:
-            url = bitbucket_api_link + projects_repo
+            url = self._url + projects_repo
             rsp = self.Paged_response_parse(url)
             if 'values' in rsp:
                 for value in rsp['values']:
@@ -501,9 +514,9 @@ class Bitbucket:
         if self.has_access == True:
             repositories = []
             if project_key == u'':
-                url = bitbucket_api_link + module_repos
+                url = self._url + module_repos
             else:
-                url = bitbucket_api_link + projects_repo + u'/' + project_key + u'/' + module_repos
+                url = self._url + projects_repo + u'/' + project_key + u'/' + module_repos
             
             rsp = self.Paged_response_parse(url)
             if 'values' in rsp:
