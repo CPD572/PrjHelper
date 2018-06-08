@@ -181,16 +181,22 @@ class TreeViewSelectableItem(TreeViewLabel):
     def __init__(self, item = None, text = None, **kwargs):
         self.item = None
         self.register_event_type('on_double_tap')
+        self.register_event_type('on_press')
         super().__init__(**kwargs)
         if item is not None and text is not None:
             self.item = item
             self.text = text
+
+    def on_press(self, item):
+        pass
 
     def on_touch_up(self, touch):
         if self.is_selected and not touch.is_mouse_scrolling:
             if touch.is_double_tap:
                 self.is_selected = False
                 self.dispatch('on_double_tap', self, self.item)
+            elif not touch.is_triple_tap:
+                self.dispatch('on_press', self.item)
             
             if not touch.is_mouse_scrolling:
                 pass

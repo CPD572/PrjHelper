@@ -76,6 +76,7 @@ class ChangeArchitectureScreen(Screen):
             mlp_project=self.connection_session.GetProjectByKey("MLP")
             for repository in mlp_project.repositories:
                 node = TreeViewSelectableItem(item=repository, text=repository.name)
+                node.bind(on_press = self.update_repo_info)
                 self.ids.scrolled_tree.add_node(node)
                 
             for layer in self.connection_session.architecture:
@@ -126,3 +127,7 @@ class ChangeArchitectureScreen(Screen):
     def export_to_mlparch(self, button):
         print('Exporting...\nFinished')
         
+
+    def update_repo_info(self, widget, item):
+        print(widget)
+        print(item)

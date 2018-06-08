@@ -4,3 +4,4 @@ __pycache__/
 00_platform_modules/
 usr/
 .settings/
+.vscode/
