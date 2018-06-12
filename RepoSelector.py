@@ -101,7 +101,7 @@ class RepoSelectorScreen(Screen):
                         subTabbedPanel.add_widget(subTab)
                     tab.add_widget(subTabbedPanel)
                 else:
-                    repoNames = layer.modules.keys()
+                    repoNames = layer.getSublayers()
                     for name in repoNames:
                         repo = self.connection_session.GetRepositoryByName("MLP", name)
                         selectableRepo = TreeViewSelectableItem(item = repo, text = repo.name)

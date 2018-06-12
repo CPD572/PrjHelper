@@ -15,6 +15,8 @@ from kivy.uix.label import Label
 from kivy.utils import get_color_from_hex as hex
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.stacklayout import StackLayout
+from kivy.uix.dropdown import DropDown
+from kivy.uix.button import Button
 
 
 Builder.load_string("""
@@ -32,9 +34,27 @@ Builder.load_string("""
             padding: 5
             orientation: 'vertical'
             BoxLayout:
-                id: layers_checkboxes
                 orientation: 'vertical'
-                spacing: 5
+                size_hint: 1, None
+                BoxLayout:
+                    id: info_repo_text
+                    orientation: 'horizontal'
+                    spacing: 5
+                    height: 150
+                    canvas:
+                        Color:
+                            rgba: 1, 1, 1, 1
+                        RoundedRectangle:
+                            size: self.size
+                            pos: self.pos
+                            radius: [5,]
+                BoxLayout:
+                    id: layers_checkboxes
+                    orientation: 'horizontal'
+                    spacing: 5
+                    height: 100
+
+                    
                     
                       
         BoxLayout:
@@ -79,11 +99,23 @@ class ChangeArchitectureScreen(Screen):
                 node.bind(on_press = self.update_repo_info)
                 self.ids.scrolled_tree.add_node(node)
                 
+            self.ids.layers_checkboxes.add_widget( Label(text="Software layer: ", size_hint=(None,None), height=40, pos_hint={"top":1}))
+            dropdown = DropDown()
             for layer in self.connection_session.architecture:
-                box = BoxLayout(orientation='horizontal', size_hint=[None, 1], width=100, spacing=5)
-                checkbox = ToggleButton(group='layers', size_hint=[1,1], text=str(layer), on_press=self.on_togle_press, allow_no_selection = False)
-                box.add_widget(checkbox)
-                self.ids.layers_checkboxes.add_widget(box)
+                if layer.hasSublayers:
+                    for sublayer in layer.getSublayers():
+                        btn = Button(text=str(layer)+"/"+str(sublayer), size_hint_y=None, height=30)
+                        btn.bind(on_release=lambda btn: dropdown.select(btn.text))
+                        dropdown.add_widget(btn)
+                else:  
+                    btn = Button(text=str(layer), size_hint_y=None, height=30)
+                    btn.bind(on_release=lambda btn: dropdown.select(btn.text))
+                    dropdown.add_widget(btn)
+
+            mainbutton = Button(text='Hello', size_hint=(None, None), height=40, pos_hint={"top":1})
+            mainbutton.bind(on_release=dropdown.open)
+            dropdown.bind(on_select=lambda instance, x: setattr(mainbutton, 'text', x))
+            self.ids.layers_checkboxes.add_widget(mainbutton)
                 
                     
             self.ids.info.add_widget(self.selected_view)

@@ -24,6 +24,9 @@ class SoftwareLayer(object):
         self.modules = dict()
         self.hasSublayers = False
         
+    def getSublayers(self):
+        return list(self.modules.keys())
+
     def __eq__(self, value):
         if isinstance(value, int):
             return self.level is value
@@ -163,4 +166,4 @@ class MicroLabPlatform(Bitbucket):
                         for repo in modules:
                             layer_structure(module= modules.attrib['group']+"/"+repo.attrib['name'])
 
-                
+               
