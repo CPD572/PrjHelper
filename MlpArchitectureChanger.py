@@ -36,11 +36,11 @@ Builder.load_string("""
             BoxLayout:
                 orientation: 'vertical'
                 size_hint: 1, None
+                height: 200
                 BoxLayout:
                     id: info_repo_text
                     orientation: 'horizontal'
                     spacing: 5
-                    height: 150
                     canvas:
                         Color:
                             rgba: 1, 1, 1, 1
@@ -52,7 +52,7 @@ Builder.load_string("""
                     id: layers_checkboxes
                     orientation: 'horizontal'
                     spacing: 5
-                    height: 100
+                    height: 50
 
                     
                     
@@ -94,12 +94,19 @@ class ChangeArchitectureScreen(Screen):
         Screen.on_pre_enter(self, *args)
         if self.connection_session != None and self.entered == False:
             mlp_project=self.connection_session.GetProjectByKey("MLP")
+            
+            #list of repositories added to TreeView
             for repository in mlp_project.repositories:
                 node = TreeViewSelectableItem(item=repository, text=repository.name)
                 node.bind(on_press = self.update_repo_info)
                 self.ids.scrolled_tree.add_node(node)
                 
-            self.ids.layers_checkboxes.add_widget( Label(text="Software layer: ", size_hint=(None,None), height=40, pos_hint={"top":1}))
+            #first element to be selected
+            first_item = self.ids.scrolled_tree.get_root().nodes[0]
+            self.ids.scrolled_tree.select_node(first_item)
+            first_item.dispatch('on_press', first_item)
+                
+            self.ids.layers_checkboxes.add_widget( Label(text="Software layer: ", size_hint=(None,None), height=40, pos_hint={"bottom":1}))
             dropdown = DropDown()
             for layer in self.connection_session.architecture:
                 if layer.hasSublayers:
@@ -112,7 +119,7 @@ class ChangeArchitectureScreen(Screen):
                     btn.bind(on_release=lambda btn: dropdown.select(btn.text))
                     dropdown.add_widget(btn)
 
-            mainbutton = Button(text='Hello', size_hint=(None, None), height=40, pos_hint={"top":1})
+            mainbutton = Button(text='Hello', size_hint=(None, None), height=40, pos_hint={"bottom":1})
             mainbutton.bind(on_release=dropdown.open)
             dropdown.bind(on_select=lambda instance, x: setattr(mainbutton, 'text', x))
             self.ids.layers_checkboxes.add_widget(mainbutton)
@@ -162,4 +169,3 @@ class ChangeArchitectureScreen(Screen):
 
     def update_repo_info(self, widget, item):
         print(widget)
-        print(item)

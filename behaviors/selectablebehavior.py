@@ -176,7 +176,7 @@ class SelectedItemsView(BoxLayout):
         self.selectedItem_height = self.size[1] - self.label_height - self.spacing
 
     
-class TreeViewSelectableItem(TreeViewLabel):
+class TreeViewSelectableItem(TreeViewLabel, HoverBehavior):
     
     def __init__(self, item = None, text = None, **kwargs):
         self.item = None
