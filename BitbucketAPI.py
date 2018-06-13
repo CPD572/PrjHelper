@@ -483,7 +483,7 @@ class Bitbucket:
             if isinstance(repoName, str): 
                 return project.repositories[project.repositories.index(repoName)]
             else:
-                return prj.repositories[self.prj.repositories.index(str(repoName))]  
+                return project.repositories[project.repositories.index(str(repoName))]  
         else:
             prj = self.GetProjectByKey(project)
             

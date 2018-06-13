@@ -89,6 +89,8 @@ class ChangeArchitectureScreen(Screen):
         self.entered = False
         self.previous_pushed_button = None
         self.window_size = (900,500)
+        self.mainbutton = None
+        self.activeNode = None
         
     def on_pre_enter(self, *args):
         Screen.on_pre_enter(self, *args)
@@ -103,8 +105,10 @@ class ChangeArchitectureScreen(Screen):
                 
             #first element to be selected
             first_item = self.ids.scrolled_tree.get_root().nodes[0]
+            self.mainbutton = Button(size_hint=(None, None), height=40, pos_hint={"bottom":1})
+
             self.ids.scrolled_tree.select_node(first_item)
-            first_item.dispatch('on_press', first_item)
+            first_item.dispatch('on_press', first_item.item)
                 
             self.ids.layers_checkboxes.add_widget( Label(text="Software layer: ", size_hint=(None,None), height=40, pos_hint={"bottom":1}))
             dropdown = DropDown()
@@ -119,10 +123,9 @@ class ChangeArchitectureScreen(Screen):
                     btn.bind(on_release=lambda btn: dropdown.select(btn.text))
                     dropdown.add_widget(btn)
 
-            mainbutton = Button(text='Hello', size_hint=(None, None), height=40, pos_hint={"bottom":1})
-            mainbutton.bind(on_release=dropdown.open)
-            dropdown.bind(on_select=lambda instance, x: setattr(mainbutton, 'text', x))
-            self.ids.layers_checkboxes.add_widget(mainbutton)
+            self.mainbutton.bind(on_release=dropdown.open)
+            dropdown.bind(on_select=self.dropdownSelect)
+            self.ids.layers_checkboxes.add_widget(self.mainbutton)
                 
                     
             self.ids.info.add_widget(self.selected_view)
@@ -153,19 +156,17 @@ class ChangeArchitectureScreen(Screen):
     def on_unmaximaze(self, manager):
         adapt_window(self.window_size)
         
-        
-    def on_togle_press(self, button):
-        print(button.parent.children)
-        #layer = self.connection_session.architecture
-        #if layer[layer.index(button.text)].hasSublayers and len(button.parent.children) == 1:
-        #    #===================================================================================
-        #    button.parent.add_widget(ToggleButton(group='layers', size_hint=[1,1], text=str(layer), on_press=self.on_togle_press))
-        #    #===================================================================================
-        #    self.previous_pushed_button = button
-        
     def export_to_mlparch(self, button):
         print('Exporting...\nFinished')
-        
 
+    def dropdownSelect(self, instance, value):
+        setattr(self.mainbutton, 'text', value)
+        selected_item = list(filter(lambda repo: self.activeNode.item == repo, self.connection_session.layeredRepos))[-1]
+        selected_item.layer = value
+        
+    # widget is the TreeViewSelectableItem 
+    # item is the Repository
     def update_repo_info(self, widget, item):
-        print(widget)
+        self.activeNode = widget
+        selected_item = list(filter(lambda repo: item == repo, self.connection_session.layeredRepos))[-1]
+        self.mainbutton.text = selected_item.layer

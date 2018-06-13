@@ -15,6 +15,17 @@ home_bitbucket_link = "repo.microlab.club"
 app_path = os.path.abspath(os.path.dirname(sys.argv[0]))
 userfile = os.path.abspath(app_path + '/usr/user.mlbu')
 
+class LayeredRepository(object):
+
+    def __init__(self, name, layer):
+        super().__init__()
+        self.name = name
+        self.layer = layer
+
+    def __eq__(self, another):
+        if isinstance(another, str):
+            return self.name == another
+        
 
 class SoftwareLayer(object):
     def __init__(self, name, **kwargs):
@@ -80,6 +91,7 @@ class MicroLabPlatform(Bitbucket):
     def __init__(self):
         super(MicroLabPlatform, self).__init__(userfile, home_bitbucket_link)
         self.architecture = None
+        self.layeredRepos = []
         
     def Login(self, user_name, password):
         global home_bitbucket_link
@@ -97,7 +109,6 @@ class MicroLabPlatform(Bitbucket):
         self.progress_string = "Load architecture data"
         self.Get_Architecture()
         self.progress_string = "Finished" 
-               
         
     def Get_Architecture(self):
         lastVersion = False
@@ -162,8 +173,13 @@ class MicroLabPlatform(Bitbucket):
                             layer_structure(sublayer= modules.attrib['group']+"/"+sublayer.attrib['functionality'])
                             for repo in sublayer:                                                        
                                 layer_structure(module= modules.attrib['group']+"/"+sublayer.attrib['functionality']+"/"+repo.attrib['name'])
+                                self.layeredRepos.append(LayeredRepository(repo.attrib['name'], layer.attrib['name']+"/"+modules.attrib['group']))
                     else:
                         for repo in modules:
                             layer_structure(module= modules.attrib['group']+"/"+repo.attrib['name'])
-
+                            self.layeredRepos.append(LayeredRepository(repo.attrib['name'], layer.attrib['name']))
                
+            
+            for repo in self.GetProjectByKey('MLP').repositories:
+                if repo not in self.layeredRepos:
+                    self.layeredRepos.append(LayeredRepository(repo, "ASW"))
