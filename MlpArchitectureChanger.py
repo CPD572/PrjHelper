@@ -17,6 +17,7 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.stacklayout import StackLayout
 from kivy.uix.dropdown import DropDown
 from kivy.uix.button import Button
+from kivy.graphics import Color, Rectangle
 
 
 Builder.load_string("""
@@ -76,8 +77,19 @@ Builder.load_string("""
                     hide_root: True
                     size_hint_y: None
 
+<DragLabel>:
+    text_color: hex("#FFFFFF")
+    canvas.before:
+        Color:
+            rgba: .6, .6, .6, 0.75
+        Rectangle:
+            size: self.size
+            pos: self.pos
  
 """)
+
+class DragLabel(Label):
+    pass
 
 class ChangeArchitectureScreen(Screen):
     
@@ -91,6 +103,7 @@ class ChangeArchitectureScreen(Screen):
         self.window_size = (900,500)
         self.mainbutton = None
         self.activeNode = None
+        self.grab_item = None
         
     def on_pre_enter(self, *args):
         Screen.on_pre_enter(self, *args)
@@ -101,6 +114,9 @@ class ChangeArchitectureScreen(Screen):
             for repository in mlp_project.repositories:
                 node = TreeViewSelectableItem(item=repository, text=repository.name)
                 node.bind(on_press = self.update_repo_info)
+                node.bind(on_grab = self.on_grab)
+                node.bind(on_finish_grabing = self.on_finish_grabing)
+                node.bind(on_grab_moving = self.on_grab_moving)
                 self.ids.scrolled_tree.add_node(node)
                 
             #first element to be selected
@@ -130,6 +146,7 @@ class ChangeArchitectureScreen(Screen):
                     
             self.ids.info.add_widget(self.selected_view)
             
+            #Right side menu
             menu = MenuBox(manager=self.manager)
             
             export_button = MenuButton(text = 'Export to\n.mlparch')
@@ -150,7 +167,7 @@ class ChangeArchitectureScreen(Screen):
         adapt_window(self.window_size if not self.manager.isMaximized else self.manager.window_size )
             
     def on_back_button_press(self, button):
-        self.manager.previuos_view()
+        self.manager.previous_view()
         
         
     def on_unmaximaze(self, manager):
@@ -163,10 +180,39 @@ class ChangeArchitectureScreen(Screen):
         setattr(self.mainbutton, 'text', value)
         selected_item = list(filter(lambda repo: self.activeNode.item == repo, self.connection_session.layeredRepos))[-1]
         selected_item.layer = value
+
+    def on_grab(self, widget, touch):
+        self.grab_item = DragLabel(text = widget.text,
+                                   height=28,
+                                   width=250,
+                                   size_hint=(None, None),
+                                   color=hex("#000000"))
+        self.grab_item.pos=(touch.pos[0]-self.grab_item.width/2, touch.pos[1]-self.grab_item.height/2)
+        Window.add_widget(self.grab_item)
+        print(widget.text + " is grabing")
+
+    def on_finish_grabing(self, widget, touch):
+        Window.remove_widget(self.grab_item)
+        repositories = self.connection_session.GetProjectByKey('MLP').repositories
+        if self.selected_view.collide_widget(self.grab_item):
+            referenced_repository = repositories[repositories.index(self.grab_item.text)]
+            self.selected_view.dispatch("on_add_item", referenced_repository, self.grab_item.text, self.grab_item.text)
+        print("Finished grabing")
+
+    def on_grab_moving(self, widget, touch):
+        self.grab_item.pos = (touch.pos[0]-self.grab_item.width/2, touch.pos[1]-self.grab_item.height/2)
         
     # widget is the TreeViewSelectableItem 
     # item is the Repository
     def update_repo_info(self, widget, item):
+        self.selected_view.remove_items()
         self.activeNode = widget
+        print(item)
         selected_item = list(filter(lambda repo: item == repo, self.connection_session.layeredRepos))[-1]
         self.mainbutton.text = selected_item.layer
+        for reference in selected_item.refs:
+            referenced_repositories = list(filter(lambda repository: repository == reference, self.connection_session.GetProjectByKey('MLP').repositories))
+            if referenced_repositories != []:
+                print(len(referenced_repositories))
+                referenced_repository = referenced_repositories[-1]
+                self.selected_view.dispatch("on_add_item", referenced_repository, referenced_repository.name, referenced_repository.name)

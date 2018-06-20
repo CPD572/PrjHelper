@@ -17,10 +17,11 @@ userfile = os.path.abspath(app_path + '/usr/user.mlbu')
 
 class LayeredRepository(object):
 
-    def __init__(self, name, layer):
+    def __init__(self, name, layer, refs):
         super().__init__()
         self.name = name
         self.layer = layer
+        self.refs = refs
 
     def __eq__(self, another):
         if isinstance(another, str):
@@ -111,7 +112,7 @@ class MicroLabPlatform(Bitbucket):
         self.progress_string = "Finished" 
         
     def Get_Architecture(self):
-        lastVersion = False
+        lastVersion = True
         
         if not os.path.exists(os.path.abspath(app_path+"/00_platform_modules")) \
         or not os.path.exists(os.path.abspath(app_path+"/00_platform_modules/Architecture.mlparch")):
@@ -126,32 +127,33 @@ class MicroLabPlatform(Bitbucket):
             else:
                 print(rsp)
                 print("sho?")
-        else:
-            os.chdir("00_platform_modules")
-            if "linux" in sys.platform:
-                import pexpect
-                if not "credential.helper" in os.popen("git config -l").readlines():
-                    os.system("git config credential.helper cache --timeout=86400")
-                pexpect.run("git fetch", events={"Password for ":self.user.password})
-            else:
-                if 'fatal' in subprocess.getoutput(["git","fetch"]):
-                    remote = subprocess.getoutput(["git", 'remote', 'show'])
-                    remote_url = subprocess.getoutput(["git", 'config', 'remote.'+remote+'.url'])
-                    if not home_bitbucket_link in remote_url:
-                        parced_url = urlparse(remote_url)
-                        user_name, _ = parced_url.netloc.split('@')
-                        actual_url = parced_url._replace(netloc=user_name+'@'+home_bitbucket_link).geturl()
-                        subprocess.call(['git', "remote", "set-url", remote, actual_url])
-                        subprocess.call(["git","fetch"])
-                    
-            responses = os.popen("git status").readlines()
-            if "Your branch is up-to-date with 'origin/master'.\n" in responses:
-                lastVersion = True
-                os.chdir("..")
-            else:
-                subprocess.call(["git","pull"])
-                lastVersion = True
+        #else:
+        #    os.chdir("00_platform_modules")
+        #    if "linux" in sys.platform:
+        #        import pexpect
+        #        if not "credential.helper" in os.popen("git config -l").readlines():
+        #            os.system("git config credential.helper cache --timeout=86400")
+        #        pexpect.run("git fetch", events={"Password for ":self.user.password})
+        #    else:
+        #        if 'fatal' in subprocess.getoutput(["git","fetch"]):
+        #            remote = subprocess.getoutput(["git", 'remote', 'show'])
+        #            remote_url = subprocess.getoutput(["git", 'config', 'remote.'+remote+'.url'])
+        #            if not home_bitbucket_link in remote_url:
+        #                parced_url = urlparse(remote_url)
+        #                user_name, _ = parced_url.netloc.split('@')
+        #                actual_url = parced_url._replace(netloc=user_name+'@'+home_bitbucket_link).geturl()
+        #                subprocess.call(['git', "remote", "set-url", remote, actual_url])
+        #                subprocess.call(["git","fetch"])
+        #            
+        #    responses = os.popen("git status").readlines()
+        #    if "Your branch is up-to-date with 'origin/master'.\n" in responses:
+        #        lastVersion = True
+        #        os.chdir("..")
+        #    else:
+        #        subprocess.call(["git","pull"])
+        #        lastVersion = True
                 
+        
         if lastVersion is True:
             self.architecture = []
             
@@ -173,13 +175,15 @@ class MicroLabPlatform(Bitbucket):
                             layer_structure(sublayer= modules.attrib['group']+"/"+sublayer.attrib['functionality'])
                             for repo in sublayer:                                                        
                                 layer_structure(module= modules.attrib['group']+"/"+sublayer.attrib['functionality']+"/"+repo.attrib['name'])
-                                self.layeredRepos.append(LayeredRepository(repo.attrib['name'], layer.attrib['name']+"/"+modules.attrib['group']))
+                                refs = [referenced_repository.text for referenced_repository in mlp.findall(".//*[@name=\'"+repo.attrib['name']+"\']/refs/repo")]
+                                self.layeredRepos.append(LayeredRepository(repo.attrib['name'], layer.attrib['name']+"/"+modules.attrib['group'], refs))
                     else:
                         for repo in modules:
                             layer_structure(module= modules.attrib['group']+"/"+repo.attrib['name'])
-                            self.layeredRepos.append(LayeredRepository(repo.attrib['name'], layer.attrib['name']))
+                            refs = [referenced_repository.text for referenced_repository in mlp.findall(".//*[@name=\'"+repo.attrib['name']+"\']/refs/repo")]
+                            self.layeredRepos.append(LayeredRepository(repo.attrib['name'], layer.attrib['name'], refs))
                
             
             for repo in self.GetProjectByKey('MLP').repositories:
                 if repo not in self.layeredRepos:
-                    self.layeredRepos.append(LayeredRepository(repo, "ASW"))
+                    self.layeredRepos.append(LayeredRepository(repo, "ASW", []))

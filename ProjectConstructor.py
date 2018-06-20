@@ -38,7 +38,7 @@ class CustomScreenMenager(ScreenManager):
         self.prev_view = self.current
         self.current = screen_name
         
-    def previuos_view(self):
+    def previous_view(self):
         self.change_screen(self.prev_view)
         
     def on_window_minimize(self, w):

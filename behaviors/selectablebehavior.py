@@ -81,6 +81,7 @@ Builder.load_string("""
     
 """)
 
+
 class ToolTip(Label):
     pass
 
@@ -141,6 +142,7 @@ class SelectedItemsView(BoxLayout):
         self.widgets = list()
         self.selectedItem_height = self.size[1] - self.label_height - self.spacing
         self.stack.bind(minimum_size=lambda w, size: w.setter('height')(w, size[1] if size[1] > self.selectedItem_height else self.selectedItem_height))
+        #self.stack.bind(on_touch_up=self.on_stack_view_touch_up)
         if halign is not None:
             self.ids.view_label.halign = halign
         if text_color is not None:
@@ -164,16 +166,25 @@ class SelectedItemsView(BoxLayout):
     def on_delete_item(self, widget):
         if '\n' in widget.label.text:
             widget.label.text = widget.label.text.replace("\n", "")
-        item_filtered = list(filter(lambda x: widget.label.text in x.displayText, self.items))
+        item_filtered = list(filter(lambda x: widget.label.text in x.label.text, self.widgets))
         if len(item_filtered) != 1:
             return
-        item = item_filtered[-1]
+        item = self.items[self.widgets.index(item_filtered[-1])]
+        
         self.items.remove(item)
         self.widgets.remove(widget)
         self.stack.remove_widget(widget)
         
     def on_size(self, a, b):
         self.selectedItem_height = self.size[1] - self.label_height - self.spacing
+
+    def remove_items(self):
+        self.stack.clear_widgets()
+        self.items.clear()
+        self.widgets.clear()
+
+    def on_stack_view_touch_up(self, widget, touch):
+        print("Stack touched up")
 
     
 class TreeViewSelectableItem(TreeViewLabel, HoverBehavior):
@@ -182,6 +193,10 @@ class TreeViewSelectableItem(TreeViewLabel, HoverBehavior):
         self.item = None
         self.register_event_type('on_double_tap')
         self.register_event_type('on_press')
+        self.register_event_type('on_grab')
+        self.register_event_type('on_finish_grabing')
+        self.register_event_type('on_grab_moving')
+        self.is_grabing = False
         super().__init__(**kwargs)
         if item is not None and text is not None:
             self.item = item
@@ -190,13 +205,32 @@ class TreeViewSelectableItem(TreeViewLabel, HoverBehavior):
     def on_press(self, item):
         pass
 
+    def on_grab(self, touch):
+        pass
+
+    def on_finish_grabing(self, touch):
+        pass
+
+    def on_grab_moving(self, touch):
+        pass
+
+    def on_touch_move(self, touch):
+        if self.is_grabing is False and self.is_selected:
+            self.is_grabing = True
+            self.dispatch('on_grab', touch)
+        elif self.is_grabing is True and self.is_selected:
+            self.dispatch('on_grab_moving', touch)
+
     def on_touch_up(self, touch):
         if self.is_selected and not touch.is_mouse_scrolling:
             if touch.is_double_tap:
                 self.is_selected = False
                 self.dispatch('on_double_tap', self, self.item)
-            elif not touch.is_triple_tap:
+            elif not touch.is_triple_tap and not self.is_grabing:
                 self.dispatch('on_press', self.item)
+            elif self.is_grabing is True:
+                self.is_grabing = False
+                self.dispatch('on_finish_grabing', touch)
             
             if not touch.is_mouse_scrolling:
                 pass
